@@ -1,0 +1,14 @@
+Package: excelutilsr
+Type: Package
+Title: What the Package Does (Title Case)
+Version: 0.1.0
+Author: R. Mark Sharp <msharp@TxBiomed.org>
+Maintainer: R. Mark Sharp <msharp@TxBiomed.org>
+Description: Designed to demonstrate using various packages to minipulate Excel workbooks and worksheets within R
+Depends:
+    R (>= 3.1.2)
+Imports:
+    stringi,
+    XLConnect
+License: GPL-2
+LazyData: TRUE
