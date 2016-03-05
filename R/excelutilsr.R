@@ -1,3 +1,31 @@
+#' Returns a character vector with the string patterns within the expunge
+#' character vector removed.
+#'
+#' Uses stri_detect_regex.
+#' @examples
+#' strngs <- c("abc", "d", "E", "Fh")
+#' expunge <- c("abc", "D", "E")
+#' remove_strings(strngs, expunge, ignore_case = TRUE)
+#' remove_strings(strngs, expunge, ignore_case = FALSE)
+#' @param .str character vector
+#' @param expunge character vector of strings to be removed
+#' @param ignore_case logical indication whether or not to be case specific.
+#' @import stringi
+#' @export
+remove_strings <- function(.str, expunge, ignore_case = FALSE) {
+  if (ignore_case) {
+    tmp_str <- tolower(.str)
+    tmp_expunge <- tolower(expunge)
+  } else {
+    tmp_str <- .str
+    tmp_expunge <- expunge
+  }
+  keep <- rep(TRUE, length(.str))
+  for (exp_str in tmp_expunge) {
+    keep <- !stri_detect_regex(tmp_str, exp_str) & keep
+  }
+  .str[keep]
+}
 #' Creates an Excel worksheet if it is needed.
 #'
 #' Takes a workbook object, a dataframe, the name of a worksheet, whether or
@@ -39,6 +67,7 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #' @param m_df dataframe to receive formated worksheet
 #' @param excel_file character vector of length 1 with file name of Excel
 #' workbook
+#' @param sheet character vector with name of worksheet
 #' @param header logical vector of length one having TRUE if a header is to be
 #' created in the worksheet.
 #' @param fmt_list list of format list used to format worksheet
@@ -103,7 +132,7 @@ add_formated_worksheet <- function(m_df, excel_file, sheet = sheet,
   } else {
     wb <- loadWorkbook(excel_file)
   }
-  
+
   if (header) {
     row_offset <- 1
   } else {
