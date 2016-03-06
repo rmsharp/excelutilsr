@@ -2,7 +2,8 @@
 % Please edit documentation in R/excelutilsr.R
 \name{add_formated_worksheet}
 \alias{add_formated_worksheet}
-\title{Adds formated data from a dataframe to a worksheet in a provided Excel file}
+\title{Adds formatting to an existing Excel worksheet or to a worksheet added by
+the function.}
 \usage{
 add_formated_worksheet(m_df, excel_file, sheet = sheet, header = TRUE,
   fmt_list, create = TRUE)
@@ -15,43 +16,44 @@ workbook}
 
 \item{sheet}{character vector with name of worksheet}
 
-\item{header}{logical vector of length one having TRUE if a header is to be
-created in the worksheet.}
+\item{header}{logical vector of length one having TRUE if a header is in the
+existing worksheet. A header is automatically created when the worksheet is
+created by this routine.}
 
-\item{fmt_list}{list of format list used to format worksheet}
+\item{fmt_list}{list of format list(s) used to format the worksheet}
 
-\item{create}{logical vector of length one having TRUE if a new worksheet
-is to be created}
+\item{create}{logical vector of length one having \code{TRUE} if a new
+worksheet is to be created}
 }
 \value{
 Excel file name with formatted worksheet.
 }
 \description{
-Takes a dataframe, an Excel file name, and a list of styles to be used one
-the worksheet if the user provided function evalutes to TRUE for a cell
-within the dataframe.
+Adds formatting to an existing worksheet based on values of a user provided
+dataframe or adds a worksheet using all of the data in a dataframe and then
+adds the indicated formatting to the newly added worksheet. If the Excel
+workbook does not exist, it is created if the \code{create} flag is set to
+\code{TRUE}.
 }
 \details{
-The test function has to be written so that TRUE is assigned to all of the
-cells where the formatting is wanted.
+Takes a dataframe, an Excel file name, and a list of styles to be used on
+the worksheet if the user provided function evalutes to \code{TRUE} for one
+or more cells within the dataframe.
 
-As long as there is a least one cell that is to be formatted, we
-set the cell styles. Remember if a cell has a value of TRUE for more
-than one of the fmt_list items, that last fmt_list item specifications
-will overwrite prior values.
+The user must provide a test function written so that it evaluates to
+\code{TRUE} for the cells where the indicated formatting is wanted.
+
+As long as there is at least one cell that is to be formatted, cell styles
+are set. If a cell has a value of \code{TRUE} for more
+than one of the \code{fmt_list} items, that last \code{fmt_list} item
+specifications will overwrite prior values.
 If the sheet does not exist and \code{create} is TRUE, one is created using
-\code{m_df}, otherwise we stop with an error.
+\code{m_df}, otherwise the function stops with an error.
 }
 \examples{
 library(stringi)
 library(XLConnect)
 
-## borders can be any of the following line types
-names(XLC[stri_detect_regex(names(XLC), pattern = "^BORDER.")])
-## colors can be any of the following
-names(XLC[stri_detect_regex(names(XLC), pattern = "^COLOR.")])
-## fill_pattern can be any of the following
-names(XLC[stri_detect_regex(names(XLC), pattern = "^FILL.")])
 my_f1 <- function(x) {x > 7}
 fmt_lst_1 <- list(test = my_f1,
                 wrap = TRUE,
@@ -59,18 +61,25 @@ fmt_lst_1 <- list(test = my_f1,
                 foreground_color = as.integer(XLC$COLOR.LAVENDER),
                 border = list(side = "all",
                               type = as.integer(XLC$BORDER.THICK),
-                              color = XLC$COLOR.DARK_BLUE)
+                              color = as.integer(XLC$COLOR.DARK_BLUE))
                 )
-my_df <- data.frame(ColA = stri_c("Name_", 1:4),
+my_df <- data.frame(ColA = stri_c("name_", 1:4),
                     ColB = c(4, 7, 8, 9),
                     ColC = c(100, 300, 3000, 132),
-                    ColD = 1:4)
+                    ColD = 1:4, stringsAsFactors = FALSE)
 result <- add_formated_worksheet(my_df, "example_wkbk.xlsx",
                                  sheet = "my_test",
                                  header = TRUE,
                                  fmt_list = list(fmt_lst_1), create = TRUE)
-
-my_f2 <- function(x) {(x \%\% 3) == 0}
+my_f2 <- function(x) {
+  sapply(x, function(x) {
+    if (all(is.numeric(x))) {
+      (x \%\% 3) == 0
+    } else {
+      rep(FALSE, length(x))
+    }
+  })
+}
 fmt_lst_2 <- list(test = my_f2,
                 wrap = TRUE,
                 fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
@@ -81,11 +90,12 @@ fmt_lst_2 <- list(test = my_f2,
                 )
 my_other_df <- data.frame(LETTERS = LETTERS[1:10],
                           NUMBERS = 1:10,
-                          FRACTIONAL = 1 / (1:10))
-result <- add_formated_worksheet(my_df, "example_wkbk.xlsx",
-                                 sheet = "my_test",
+                          FRACTIONAL = 1 / (1:10), stringsAsFactors = FALSE)
+result <- add_formated_worksheet(my_other_df, "example_wkbk.xlsx",
+                                 sheet = "my_2nd_test",
                                  header = TRUE,
                                  fmt_list = list(fmt_lst_1, fmt_lst_2),
                                  create = TRUE)
+
 }
 

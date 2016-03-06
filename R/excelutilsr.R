@@ -1,3 +1,33 @@
+#' Creates an Excel workbook with worksheets.
+#'
+#' @param file filename of workbook to be created
+#' @param df_list list of data frames to be added as worksheets to workbook
+#' @param sheetnames character vector of worksheet names
+#' @param create Specifies if the file should be created if it does not
+#' already exist (default is FALSE). Note that create = TRUE has
+#' no effect if the specified file exists, i.e. an existing file is
+#' loaded and not being recreated if create = TRUE.
+#' @import XLConnect
+#' @export
+create_wkbk <- function(file, df_list, sheetnames, create = TRUE) {
+  if (length(df_list) != length(sheetnames))
+    stop("Number of dataframes does not match number of worksheet names")
+
+  if (file.exists(file) & create)
+    file.remove(file)
+
+  wkbk <- loadWorkbook(filename = file, create = create)
+  for (i in seq_along(df_list)) {
+    sheetname <- sheetnames[i]
+    df <- df_list[[i]]
+    createSheet(wkbk, sheetname)
+    writeWorksheet(wkbk, df, sheetname, startRow = 1, startCol = 1,
+                   header = TRUE)
+    setColumnWidth(wkbk, sheetname, column = 1:ncol(df), width = -1)
+  }
+  saveWorkbook(wkbk)
+  wkbk
+}
 #' Returns a character vector with the string patterns within the expunge
 #' character vector removed.
 #'
@@ -58,32 +88,40 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
     }
   }
 }
-#' Adds formated data from a dataframe to a worksheet in a provided Excel file
+#' Adds formatting to an existing Excel worksheet or to a worksheet added by
+#' the function.
 #'
-#' Takes a dataframe, an Excel file name, and a list of styles to be used one
-#' the worksheet if the user provided function evalutes to TRUE for a cell
-#' within the dataframe.
+#' Adds formatting to an existing worksheet based on values of a user provided
+#' dataframe or adds a worksheet using all of the data in a dataframe and then
+#' adds the indicated formatting to the newly added worksheet. If the Excel
+#' workbook does not exist, it is created if the \code{create} flag is set to
+#' \code{TRUE}.
 #'
-#' The test function has to be written so that TRUE is assigned to all of the
-#' cells where the formatting is wanted.
+#' Takes a dataframe, an Excel file name, and a list of styles to be used on
+#' the worksheet if the user provided function evalutes to \code{TRUE} for one
+#' or more cells within the dataframe.
 #'
-#' As long as there is a least one cell that is to be formatted, we
-#' set the cell styles. Remember if a cell has a value of TRUE for more
-#' than one of the fmt_list items, that last fmt_list item specifications
-#' will overwrite prior values.
+#' The user must provide a test function written so that it evaluates to
+#' \code{TRUE} for the cells where the indicated formatting is wanted.
+#'
+#' As long as there is at least one cell that is to be formatted, cell styles
+#' are set. If a cell has a value of \code{TRUE} for more
+#' than one of the \code{fmt_list} items, that last \code{fmt_list} item
+#' specifications will overwrite prior values.
 
 #' If the sheet does not exist and \code{create} is TRUE, one is created using
-#' \code{m_df}, otherwise we stop with an error.
+#' \code{m_df}, otherwise the function stops with an error.
 #'
 #' @param m_df dataframe to receive formated worksheet
 #' @param excel_file character vector of length 1 with file name of Excel
 #' workbook
 #' @param sheet character vector with name of worksheet
-#' @param header logical vector of length one having TRUE if a header is to be
-#' created in the worksheet.
-#' @param fmt_list list of format list used to format worksheet
-#' @param create logical vector of length one having TRUE if a new worksheet
-#' is to be created
+#' @param header logical vector of length one having TRUE if a header is in the
+#' existing worksheet. A header is automatically created when the worksheet is
+#' created by this routine.
+#' @param fmt_list list of format list(s) used to format the worksheet
+#' @param create logical vector of length one having \code{TRUE} if a new
+#' worksheet is to be created
 #' @return Excel file name with formatted worksheet.
 #'
 #' @import stringi
@@ -92,12 +130,6 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #' library(stringi)
 #' library(XLConnect)
 #'
-#' ## borders can be any of the following line types
-#' names(XLC[stri_detect_regex(names(XLC), pattern = "^BORDER.")])
-#' ## colors can be any of the following
-#' names(XLC[stri_detect_regex(names(XLC), pattern = "^COLOR.")])
-#' ## fill_pattern can be any of the following
-#' names(XLC[stri_detect_regex(names(XLC), pattern = "^FILL.")])
 #' my_f1 <- function(x) {x > 7}
 #' fmt_lst_1 <- list(test = my_f1,
 #'                 wrap = TRUE,
@@ -105,18 +137,25 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #'                 foreground_color = as.integer(XLC$COLOR.LAVENDER),
 #'                 border = list(side = "all",
 #'                               type = as.integer(XLC$BORDER.THICK),
-#'                               color = XLC$COLOR.DARK_BLUE)
+#'                               color = as.integer(XLC$COLOR.DARK_BLUE))
 #'                 )
-#' my_df <- data.frame(ColA = stri_c("Name_", 1:4),
+#' my_df <- data.frame(ColA = stri_c("name_", 1:4),
 #'                     ColB = c(4, 7, 8, 9),
 #'                     ColC = c(100, 300, 3000, 132),
-#'                     ColD = 1:4)
+#'                     ColD = 1:4, stringsAsFactors = FALSE)
 #' result <- add_formated_worksheet(my_df, "example_wkbk.xlsx",
 #'                                  sheet = "my_test",
 #'                                  header = TRUE,
 #'                                  fmt_list = list(fmt_lst_1), create = TRUE)
-#'
-#' my_f2 <- function(x) {(x %% 3) == 0}
+#' my_f2 <- function(x) {
+#'   sapply(x, function(x) {
+#'     if (all(is.numeric(x))) {
+#'       (x %% 3) == 0
+#'     } else {
+#'       rep(FALSE, length(x))
+#'     }
+#'   })
+#' }
 #' fmt_lst_2 <- list(test = my_f2,
 #'                 wrap = TRUE,
 #'                 fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
@@ -127,12 +166,13 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #'                 )
 #' my_other_df <- data.frame(LETTERS = LETTERS[1:10],
 #'                           NUMBERS = 1:10,
-#'                           FRACTIONAL = 1 / (1:10))
-#' result <- add_formated_worksheet(my_df, "example_wkbk.xlsx",
-#'                                  sheet = "my_test",
+#'                           FRACTIONAL = 1 / (1:10), stringsAsFactors = FALSE)
+#' result <- add_formated_worksheet(my_other_df, "example_wkbk.xlsx",
+#'                                  sheet = "my_2nd_test",
 #'                                  header = TRUE,
 #'                                  fmt_list = list(fmt_lst_1, fmt_lst_2),
 #'                                  create = TRUE)
+#'
 #' @export
 add_formated_worksheet <- function(m_df, excel_file, sheet = sheet,
                                    header = TRUE, fmt_list,
