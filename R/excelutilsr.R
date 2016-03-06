@@ -130,6 +130,13 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #' library(stringi)
 #' library(XLConnect)
 #'
+#'
+#' ## borders can be any of the following line types
+#' names(XLC[stri_detect_regex(names(XLC), pattern = "^BORDER.")])
+#' ## colors can be any of the following
+#' names(XLC[stri_detect_regex(names(XLC), pattern = "^COLOR.")])
+#' ## fill_pattern can be any of the following
+#' names(XLC[stri_detect_regex(names(XLC), pattern = "^FILL.")])
 #' my_f1 <- function(x) {x > 7}
 #' fmt_lst_1 <- list(test = my_f1,
 #'                 wrap = TRUE,
