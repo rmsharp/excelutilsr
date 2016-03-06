@@ -31,6 +31,17 @@ Takes a dataframe, an Excel file name, and a list of styles to be used one
 the worksheet if the user provided function evalutes to TRUE for a cell
 within the dataframe.
 }
+\details{
+The test function has to be written so that TRUE is assigned to all of the
+cells where the formatting is wanted.
+
+As long as there is a least one cell that is to be formatted, we
+set the cell styles. Remember if a cell has a value of TRUE for more
+than one of the fmt_list items, that last fmt_list item specifications
+will overwrite prior values.
+If the sheet does not exist and \code{create} is TRUE, one is created using
+\code{m_df}, otherwise we stop with an error.
+}
 \examples{
 library(stringi)
 library(XLConnect)
