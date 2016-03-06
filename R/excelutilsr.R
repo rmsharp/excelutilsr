@@ -65,7 +65,7 @@ remove_strings <- function(.str, expunge, ignore_case = FALSE) {
 #'
 #' @return NULL
 #' @param wb workbook object
-#' @param m_df dataframe to receive formated worksheet
+#' @param m_df dataframe to receive formatted worksheet
 #' @param sheet character vector with name of worksheet
 #' @param header logical vector of length one having TRUE if a header is to be
 #' created in the worksheet.
@@ -112,7 +112,7 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #' If the sheet does not exist and \code{create} is TRUE, one is created using
 #' \code{m_df}, otherwise the function stops with an error.
 #'
-#' @param m_df dataframe to receive formated worksheet
+#' @param m_df dataframe to receive formatted worksheet
 #' @param excel_file character vector of length 1 with file name of Excel
 #' workbook
 #' @param sheet character vector with name of worksheet
@@ -150,7 +150,7 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #'                     ColB = c(4, 7, 8, 9),
 #'                     ColC = c(100, 300, 3000, 132),
 #'                     ColD = 1:4, stringsAsFactors = FALSE)
-#' result <- add_formated_worksheet(my_df, "example_wkbk.xlsx",
+#' result <- add_formatted_worksheet(my_df, "example_wkbk.xlsx",
 #'                                  sheet = "my_test",
 #'                                  header = TRUE,
 #'                                  fmt_list = list(fmt_lst_1), create = TRUE)
@@ -174,14 +174,14 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
 #' my_other_df <- data.frame(LETTERS = LETTERS[1:10],
 #'                           NUMBERS = 1:10,
 #'                           FRACTIONAL = 1 / (1:10), stringsAsFactors = FALSE)
-#' result <- add_formated_worksheet(my_other_df, "example_wkbk.xlsx",
+#' result <- add_formatted_worksheet(my_other_df, "example_wkbk.xlsx",
 #'                                  sheet = "my_2nd_test",
 #'                                  header = TRUE,
 #'                                  fmt_list = list(fmt_lst_1, fmt_lst_2),
 #'                                  create = TRUE)
 #'
 #' @export
-add_formated_worksheet <- function(m_df, excel_file, sheet = sheet,
+add_formatted_worksheet <- function(m_df, excel_file, sheet = sheet,
                                    header = TRUE, fmt_list,
                                    create = TRUE) {
   ## Create the file if it does not exist
@@ -208,7 +208,7 @@ add_formated_worksheet <- function(m_df, excel_file, sheet = sheet,
   fmt_col <- matrix(data = rep(1:ncol(m_df), each = nrow(m_df)),
                     nrow = nrow(m_df),
                     ncol = ncol(m_df))
-  ## Step through each list item in fmt_list, each of which has the formating
+  ## Step through each list item in fmt_list, each of which has the formatting
   ## instructions corresponding to what is to be done to all cells that
   ## produce of value of TRUE in the test function associated with the list
   ## item.
