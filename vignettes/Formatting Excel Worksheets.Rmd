@@ -1,0 +1,240 @@
+---
+title: "Formatting Excel Worksheets with R"
+author: "R. Mark Sharp, Ph.D."
+date: "March 6, 2016"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+suppressMessages(library(XLConnect))
+library(stringi)
+library(excelutilsr)
+
+```
+Though I try to not send data to individuals within an Excel file, 
+sometimes my colleagues use Excel extensively in their own work, 
+are adept at using Excel, and benefit from some of the formatting that is 
+available for highlighting specific cells, columns, and rows within worksheets. 
+For these reasons, I have put together a small function to encapsulate many 
+of the nice formatting features provided by the XLConnect 
+<a href="mailto:xlconnect@mirai-solutions.com">xlconnect@mirai-solutions.com</a>
+package, which is available on CRAN.
+
+The function `add_formatted_worksheet` is used on one worksheet at a time, but 
+can add any number of formats to different cells within that worksheet. 
+An example or two will make the process clear.
+
+Let's say you are a teacher who has given your students three different ways to
+earn points for the class you are teaching. They are listed below:
+
+Type        | Number Possible | Percent of Final Grade
+------------|-----------------|-----------------------
+Excercise   |       10        |            30
+Exam        |        4        |            40
+Final       |        1        |            30
+
+You want to provide yourself and your students with a way of glancing at their
+grades and knowing where they stand quickly so you devise a plan to indicate 
+how things are going by using 
+Excel's formatting tools.
+
+1. Excercises are in cells with an unlined left and right borders.
+2. Exams are in cells with a single lined left and right borders.
+3. The final has a double lined left and right borders.
+1. Individual grades below 65 have a red foreground.
+2. Individual grades below 75 have a yellow foreground.
+3. Grades of 75 and above are in a transparent clear foreground.
+3. The cells with the student names of individuals with cumulative scores 
+that are equal to or above 75 have a green foreground.
+4. The cells with the student names of individuals with cumulative scores 
+that are greater than or equal to 65 and below 75 have a 
+yellow foreground. 
+5. The cells with the student names of individuals with cumulative scores 
+that are below 65 have a red foreground. 
+
+We can start by identifying the columns of cells with Exam grades. Let's say
+the column names are of the form "Exam_1" or "Week_2_Exam" such that we can 
+use the string "exam" to identify the correct columns. The function could be 
+written as follows. 
+
+```{r echo = TRUE, include = TRUE}
+is_exam <- function(grade_df) {
+  sapply(names(grade_df), function(col_name) {
+    if (stri_detect_regex(tolower(col_name), pattern = "exam") &
+        !stri_detect_regex(tolower(col_name), pattern = "final")) {
+      rep(TRUE, nrow(grade_df))
+    } else {
+      rep(FALSE, nrow(grade_df))
+    }
+  })
+}
+grade_df <- data.frame(Student = c("James", "Jane", "Jamie"), 
+                      "Exam_1" = c(86, 35, 42),
+                      "Exercise_1" = c(75, 0, 95),
+                      "Exercise_2" = c(100, 65, 80),
+                      "Exam 2" = c(92, 49, 59), 
+                      "Final Exam" = c(84, 68, 95),stringsAsFactors = FALSE)
+grade_df
+is_exam(grade_df)
+
+```
+It is now easy to come up with a function that detects the column with
+the string "final" or "exercise" embedded in the column name.
+
+```{r echo = TRUE, include = TRUE}
+is_final <- function(grade_df) {
+  sapply(names(grade_df), function(col_name) {
+    if (stri_detect_regex(tolower(col_name), pattern = "final")) {
+      rep(TRUE, nrow(grade_df))
+    } else {
+      rep(FALSE, nrow(grade_df))
+    }
+  })
+}
+is_final(grade_df)
+is_exercise <- function(grade_df) {
+  sapply(names(grade_df), function(col_name) {
+    if (stri_detect_regex(tolower(col_name), pattern = "exercise")) {
+      rep(TRUE, nrow(grade_df))
+    } else {
+      rep(FALSE, nrow(grade_df))
+    }
+  })
+}
+is_exercise(grade_df)
+
+```
+Testing for individual cell values is a bit different, but using _R's_ vectors
+makes it quite simple. Thus, to test for individual grades below 65 we use
+the following function
+```{r echo = TRUE, include = TRUE}
+is_score_below_65 <- function(grade_df) {grade_df < 65}
+is_score_below_65(grade_df)
+
+```
+Seeing how simply that was constructed the next two needed functions are 
+easily written with the one complexity of how to handle grades below 75 and 
+not less than 65. (Note: the inaccurate function name).
+
+```{r echo = TRUE, include = TRUE}
+is_score_equal_or_above_65_and_below_75 <- function(grade_df) {
+  grade_df < 75 &
+  !grade_df < 65
+}
+is_score_equal_or_above_65_and_below_75(grade_df)
+
+is_score_equal_or_above_75 <- function(grade_df) {grade_df >= 75}
+
+is_score_equal_or_above_75(grade_df)
+```
+Calculating cumulative scores have to take into account order and weight of 
+the scores. We can do this by calculating possible total points up to the 
+current cell. I am choosing to put my knowledge of the number and value of each
+type of grade into a single function (`get_possible_pts()`). 
+Handling excussed missing grades is outside the scope of this example.
+
+Thus, for the function `is_avg_equal_or_above_75()` 
+```{r echo = TRUE, include = TRUE}
+#' Looks at the number of exercises, exams, and finals complete to return the
+#' maximum number of points that could have been earned by the student at
+#' any specific point.
+get_possible_pts <- function(exercises = 10, exams = 4, finals = 1) {
+  exercises / 10 * 30.0 + exams / 4 * 40.0 + finals / 1 * 30
+}
+
+get_earned_pts <- function(grade_df, col_num) {
+  if (col_num < 2) {
+    stop(stri_c("col_num in get_earned_pts must be at least 2 and no more 
+                than total number of columns in the grade_df dataframe."))
+  } else {
+    partial_df <- grade_df[ , c(2:col_num)]
+    exam_df <- partial_df
+    t_exam_df <- t(is_exam(partial_df))
+    exam_df <- exam_df * t_exam_df * 40
+    exercise_df <- partial_df
+    t_exercise_df <- t(is_exercise(partial_df))
+    exercise_df <- exercise_df * t_exercise_df * 30
+    final_df <- partial_df
+    t_final_df <- t(is_final(partial_df))
+    final_df <- final_df * t_final_df * 30
+    current_grade_df <- exam_df + exercise_df + final_df
+  }
+  t_df <- cbind(grade_df[ , 1], current_grade_df)
+  names(t_df) <- names(grade_df[ , c(1:col_num)])
+  t_df
+}
+get_current_avg <- 
+  function(grade_df) {
+    exams <- 0
+    exercises <- 0
+    finals <- 0
+    col_names <- tolower(names(grade_df))
+    for (i in seq_along(col_names)) {
+      if (i == 1) {
+        next
+      } else {
+        col_name <- col_names[i]
+        if (stri_detect_regex(col_name, "exam") &
+            !stri_detect_regex(col_name, "final")) {
+          exams <- exams + 1
+        } else if (stri_detect_regex(col_name, "exercise")) {
+          exercises <- exercises + 1
+        } else if (stri_detect_regex(col_name, "final")) {
+          finals <- finals + 1
+        }
+      }
+    }
+   possible_points <- get_possible_pts(exercises, exams, finals)
+   earned_points <- get_earned_pts(grade_df, i)
+   current_avg <- earned_points[ , -1] / possible_points
+   current_avg <- cbind(earned_points[ , 1], current_avg)
+   names(current_avg) <- names(grade_df)
+   current_avg
+  }
+
+current_avg <- get_current_avg(grade_df)
+
+is_avg_below_65 <- function(grade_df) {
+  is_score_below_65(get_current_avg(grade_df))
+}
+
+# is_student_below_65 <- function(grade_df) {
+#   
+#   is_score_below_65(get_current_avg(grade_df))
+# }
+# 
+is_avg_equal_or_above_75 <- function(grade_df) {
+  is_score_equal_or_above_75(get_current_avg(grade_df))
+}
+
+is_avg_equal_or_above_65_and_below_75 <- function(grade_df) {
+  is_score_equal_or_above_65_and_below_75(get_current_avg(grade_df))
+}
+
+```
+
+```{r include = TRUE, echo = TRUE}
+exam_fmt <- list(
+  test = is_exam,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.GREY_25_PERCENT)
+  )
+final_fmt <- list(
+  test = is_final,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  border = as.integer(XLC$BORDER.DOUBLE)
+  )
+below_65_fmt <- list(
+  test = is_score_below_65,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.GREY_25_PERCENT)
+  )
+
+
+
+
+```
