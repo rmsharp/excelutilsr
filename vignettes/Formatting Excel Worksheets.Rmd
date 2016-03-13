@@ -69,13 +69,16 @@ is_exam <- function(df) {
     }
   })
 }
+```
+I have created a small dataframe containing some imaginary students and grades
+that can be used to illustrate the various functions.
+```{r echo = TRUE, include = TRUE}
 grade_df <- data.frame(Student = c("James", "Jane", "Jamie"), 
                       "Exam_1" = c(86, 35, 42),
                       "Exercise_1" = c(75, 0, 95),
                       "Exercise_2" = c(100, 65, 80),
                       "Exam 2" = c(92, 49, 59), 
                       "Final Exam" = c(84, 68, 95),stringsAsFactors = FALSE)
-grade_df
 is_exam(grade_df)
 
 ```
@@ -103,6 +106,11 @@ is_exercise <- function(df) {
   })
 }
 is_exercise(grade_df)
+
+```
+In an equivalent way we can write a function to see if a cell holds a
+student's name. 
+```{r echo = TRUE, include = TRUE}
 is_student <- function(df) {
   sapply(names(df), function(col_name) {
     if (stri_detect_regex(tolower(col_name), pattern = "student")) {
@@ -123,9 +131,9 @@ is_score_below_65 <- function(grade_df) {grade_df < 65}
 is_score_below_65(grade_df)
 
 ```
-Seeing how simply that was constructed the next two needed functions are 
+After seeing how simply that was constructed, the next two functions we need are 
 easily written with the one complexity of how to handle grades below 75 and 
-not less than 65. (Note: the inaccurate function name).
+not less than 65.
 
 ```{r echo = TRUE, include = TRUE}
 is_score_equal_or_above_65_and_below_75 <- function(grade_df) {
@@ -139,15 +147,19 @@ is_score_equal_or_above_75 <- function(grade_df) {grade_df >= 75}
 is_score_equal_or_above_75(grade_df)
 
 ```
-Calculating cumulative scores have to take into account order and weight of 
-the scores. We can do this by calculating possible total points up to the 
+When calculating current averages, scores have to take into account order and 
+weight of the scores. 
+We can do this by calculating possible total points up to the 
 current cell. I am choosing to put my knowledge of the number and value of each
-type of grade into a single function (`get_possible_pts()`). 
-Handling excussed missing grades is outside the scope of this example.
-
-Thus, for the function `is_avg_equal_or_above_75()` 
+type of grade into a single function (`get_grading_scheme()`). 
+`r stri_c(" _", unlist(stri_split_fixed("Handling excussed missing grades is outside the scope of this example", " ")), "_", collapse = "")`.
 ```{r echo = TRUE, include = TRUE}
-get_grade_schedule <- function() {
+#' Grading scheme
+
+#' This function houses the number of each grade type and the points assigned 
+#' to those grade types.
+#'
+get_grading_scheme <- function() {
   list(n_exams = 4,
        exam_pts = 40.0,
        n_exercises = 10,
@@ -156,14 +168,22 @@ get_grade_schedule <- function() {
        final_pts = 30.0,
        total_pts = 100)
 }
+```
+```{r echo = TRUE, include = TRUE}
+
 #' Looks at the number of exercises, exams, and finals complete to return the
 #' maximum number of points that could have been earned by the student at
 #' any specific point.
 get_individual_possible_pts <- function(exercises = 10, exams = 4, finals = 1) {
-  sched <- get_grade_schedule()
+  sched <- get_grading_scheme()
   exercises / sched$n_exercises * sched$exercise_pts  + 
     exams / sched$n_exams * sched$exam_pts  + 
     finals / sched$n_finals * sched$final_pts
+}
+get_student_col <- function(df) {
+  col_names <- names(df)
+  (1:length(df))[
+    stri_detect_regex(tolower(col_names), pattern = "student")]
 }
 #' Looks at the number of exercises, exams, and finals complete to return the
 #' maximum number of points that could have been earned by the student at
@@ -203,7 +223,7 @@ get_possible_pts <- function(grade_df) {
 }
 
 get_earned_pts <- function(grade_df) {
-  sched <- get_grade_schedule()
+  sched <- get_grading_scheme()
   student_col <- get_student_col(grade_df)
   partial_df <- grade_df[ , -student_col]
   exam_df <- partial_df * is_exam(partial_df) * 
@@ -213,59 +233,67 @@ get_earned_pts <- function(grade_df) {
   final_df <- partial_df * is_final(partial_df) * 
     sched$final_pts / (sched$n_finals * sched$total_pts)
   current_grade_df <- exam_df + exercise_df + final_df
-  t_df <- cbind(grade_df[ , student_col], current_grade_df)
+  t_df <- data.frame(grade_df[ , student_col], current_grade_df)
+  names(t_df) <- names(grade_df)
   t_df
+}
+get_cummulative_earned_pts <- function(df) {
+  student_col <- get_student_col(df)
+  t_df <- get_earned_pts(df)
+  c_pts <- t(cumsum(data.frame(as.matrix(t(t_df[ , -student_col]), 
+                                         ncol = nrow(df)))))
+  c_pts <- data.frame(df[ , student_col], c_pts, check.names = FALSE, 
+                      stringsAsFactors = FALSE, row.names = NULL)
+  names(c_pts) <- names(df)
+  c_pts
 }
 get_current_avg <- function(df) {
   student_col <- get_student_col(df)
   possible_points <- get_possible_pts(df)
-  earned_points <- get_earned_pts(df) # needs to be cumulative earned points
+  earned_points <- get_cummulative_earned_pts(df) # needs to be cumulative earned points
   current_avg <- earned_points[ , -student_col] / possible_points[ , -student_col]
-  current_avg <- cbind(earned_points[ , student_col], current_avg)
+  current_avg <- data.frame(earned_points[ , student_col], current_avg)
+  names(current_avg) <- names(df)
   current_avg
 }
 
 current_avg <- get_current_avg(grade_df)
+```
+Thus, for the function `is_avg_equal_or_above_75()` 
 
-is_avg_below_65 <- function(grade_df) {
-  is_score_below_65(get_current_avg(grade_df))
-}
-
+```{r echo = TRUE, include = TRUE}
 is_avg_equal_or_above_75 <- function(grade_df) {
   is_score_equal_or_above_75(get_current_avg(grade_df))
+}
+```
+Identical strategy is used for both `is_avg_below_65()` and 
+`is_avg_equal_or_above_65_and_below_75()`.
+
+```{r echo = TRUE, include = TRUE}
+is_avg_below_65 <- function(grade_df) {
+  is_score_below_65(get_current_avg(grade_df))
 }
 
 is_avg_equal_or_above_65_and_below_75 <- function(grade_df) {
   is_score_equal_or_above_65_and_below_75(get_current_avg(grade_df))
 }
-full_grade_df <- function(Student = c("James", "Jane", "Jamie"), 
-                      )
-grade_df <- data.frame(Student = c("James", "Jane", "Jamie"), 
-                      "Exam_1" = c(86, 35, 42),
-                      "Exercise_1" = c(75, 0, 95),
-                      "Exercise_2" = c(100, 65, 80),
-                      "Exam 2" = c(92, 49, 59), 
-                      "Final Exam" = c(84, 68, 95),stringsAsFactors = FALSE)
-
+```
+I have created a small dataframe containing some imaginary students and grades.
+```{r echo = TRUE, include = TRUE}
 make_df_with_FALSE <- function(current_avg) {
   data.frame(matrix(rep(FALSE, nrow(current_avg) *
                           (max(col(current_avg)) - 1)), 
                     nrow = nrow(current_avg),
                     ncol = ncol(current_avg) - 1))
 }
-get_student_col <- function(df) {
-  col_names <- names(df)
-  (1:length(df))[
-    stri_detect_regex(tolower(col_names), pattern = "student")]
-}
 add_student_col <- function(current_avg, score_test_col, student_col) {
   false_col <- rep(FALSE, nrow(current_avg))
   student_df <- data.frame(false_col)
   for (col in seq_along(current_avg)) {
     if (col != student_col) {
-      student_df <- cbind(student_df, false_col)
+      student_df <- data.frame(student_df, false_col)
     } else {
-      student_df <-cbind(student_df, student = score_test_col)
+      student_df <-data.frame(student_df, student = score_test_col)
     }
   }
   student_df <- student_df[ , -1]
@@ -291,64 +319,64 @@ student_avg_test <- function(grade_df, score_test) {
                                 student_col)
   student_df
 }
-student_avg_below_65 <- function(grade_df) {
-  if (nrow(grade_df) == 0) {
-    return(NA)
-  }
-  current_avg <- get_current_avg(grade_df)
-  student_col <- get_student_col(current_avg)
-  below_65 <- logical(nrow(grade_df))
-  for (row in 1:nrow(grade_df)) {
-    max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-    if (current_avg[row, max_col] < 65) {
-      below_65[row] <- TRUE
-    } else {
-      below_65[row] <- FALSE
-    }
-  }
-  student_df <- add_student_col(current_avg, below_65, student_col)
-  student_df
-}
+# student_avg_below_65 <- function(grade_df) {
+#   if (nrow(grade_df) == 0) {
+#     return(NA)
+#   }
+#   current_avg <- get_current_avg(grade_df)
+#   student_col <- get_student_col(current_avg)
+#   below_65 <- logical(nrow(grade_df))
+#   for (row in 1:nrow(grade_df)) {
+#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
+#     if (current_avg[row, max_col] < 65) {
+#       below_65[row] <- TRUE
+#     } else {
+#       below_65[row] <- FALSE
+#     }
+#   }
+#   student_df <- add_student_col(current_avg, below_65, student_col)
+#   student_df
+# }
 
-student_avg_below_75_and_above_65 <- function(grade_df) {
-  if (nrow(grade_df) == 0) {
-    return(NA)
-  }
-  current_avg <- get_current_avg(grade_df)
-  student_col <- get_student_col(current_avg)
-  between_75_and_65 <- logical(nrow(grade_df))
-  for (row in 1:nrow(grade_df)) {
-    max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-    if (current_avg[row, max_col] < 75 &
-        !current_avg[row, max_col] < 65) {
-      between_75_and_65[row] <- TRUE
-    } else {
-      between_75_and_65[row] <- FALSE
-    }
-  }
-  student_df <- add_student_col(current_avg, between_75_and_65, 
-                                student_col)
-  student_df
-}
-student_avg_equal_or_above_75 <- function(grade_df) {
-  if (nrow(grade_df) == 0) {
-    return(NA)
-  }
-  current_avg <- get_current_avg(grade_df)
-  student_col <- get_student_col(current_avg)
-  equal_or_above_75 <- logical(nrow(grade_df))
-  for (row in 1:nrow(grade_df)) {
-    max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-    if (current_avg[row, max_col] >= 75) {
-      equal_or_above_75[row] <- TRUE
-    } else {
-      equal_or_above_75[row] <- FALSE
-    }
-  }
-  student_df <- add_student_col(current_avg, equal_or_above_75, 
-                                student_col)
-  student_df
-}
+# student_avg_below_75_and_above_65 <- function(grade_df) {
+#   if (nrow(grade_df) == 0) {
+#     return(NA)
+#   }
+#   current_avg <- get_current_avg(grade_df)
+#   student_col <- get_student_col(current_avg)
+#   between_75_and_65 <- logical(nrow(grade_df))
+#   for (row in 1:nrow(grade_df)) {
+#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
+#     if (current_avg[row, max_col] < 75 &
+#         !current_avg[row, max_col] < 65) {
+#       between_75_and_65[row] <- TRUE
+#     } else {
+#       between_75_and_65[row] <- FALSE
+#     }
+#   }
+#   student_df <- add_student_col(current_avg, between_75_and_65, 
+#                                 student_col)
+#   student_df
+# }
+# student_avg_equal_or_above_75 <- function(grade_df) {
+#   if (nrow(grade_df) == 0) {
+#     return(NA)
+#   }
+#   current_avg <- get_current_avg(grade_df)
+#   student_col <- get_student_col(current_avg)
+#   equal_or_above_75 <- logical(nrow(grade_df))
+#   for (row in 1:nrow(grade_df)) {
+#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
+#     if (current_avg[row, max_col] >= 75) {
+#       equal_or_above_75[row] <- TRUE
+#     } else {
+#       equal_or_above_75[row] <- FALSE
+#     }
+#   }
+#   student_df <- add_student_col(current_avg, equal_or_above_75, 
+#                                 student_col)
+#   student_df
+# }
 
 
 ```
