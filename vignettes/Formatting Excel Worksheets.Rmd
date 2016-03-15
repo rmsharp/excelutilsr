@@ -23,7 +23,13 @@ package, which is available on CRAN.
 
 The function `add_formatted_worksheet` is used on one worksheet at a time, but 
 can add any number of formats to different cells within that worksheet. 
-An example or two will make the process clear.
+
+An instructor asked me about calculating student scores and current averages
+using R and then displaying those scores in Excel with some formating 
+enhancements to indicate those students who needes attention. 
+I do not remember the specifics of his grading scheme, but this is an attempt
+to model a fairly realistic grading scenarior that can be easily simplified 
+or enhanced.
 
 Let's say you are a teacher who has given your students three different ways to
 earn points for the class you are teaching. They are listed below:
@@ -169,6 +175,14 @@ get_grading_scheme <- function() {
        total_pts = 100)
 }
 ```
+The first thing we need to know to see how a student is doing is to find out
+what the maximum number of points could have been accrued up and including each
+time point. Thus, in this example, after the first exam a student could have 
+100 on the exam, which would be 10 points (1 * 40 / 4) for the 1 examination 
+taken thus far, the 40 points in the final grade made up of examination scores, 
+and the fact that there are 4 of them. 
+That is calculated with the `get_individual_possible_pts()` function.
+`r get_individual_possible_pts(0, 1, 0))
 ```{r echo = TRUE, include = TRUE}
 
 #' Looks at the number of exercises, exams, and finals complete to return the
@@ -180,11 +194,21 @@ get_individual_possible_pts <- function(exercises = 10, exams = 4, finals = 1) {
     exams / sched$n_exams * sched$exam_pts  + 
     finals / sched$n_finals * sched$final_pts
 }
+```
+We then need to calculate the possible number of points for each time point 
+for each student. 
+The code does not assume the location of the column containing the students 
+names and its location is needed several times so 
+a function that returns its position must be created.
+```{r echo = TRUE, include = TRUE}
 get_student_col <- function(df) {
   col_names <- names(df)
   (1:length(df))[
     stri_detect_regex(tolower(col_names), pattern = "student")]
 }
+```
+Now we can calculate the possible points for each student.
+```{r echo = TRUE, include = TRUE}
 #' Looks at the number of exercises, exams, and finals complete to return the
 #' maximum number of points that could have been earned by the student at
 #' any specific point.
@@ -221,7 +245,10 @@ get_possible_pts <- function(grade_df) {
                         possible_pts)
   possible_pts
 }
-
+```
+Now that we know what is possible, we calculate the number of points
+each student has earned at each time point in their grade history.
+```{r echo = TRUE, include = TRUE}
 get_earned_pts <- function(grade_df) {
   sched <- get_grading_scheme()
   student_col <- get_student_col(grade_df)
@@ -237,6 +264,10 @@ get_earned_pts <- function(grade_df) {
   names(t_df) <- names(grade_df)
   t_df
 }
+```
+The cummulative earned points is calculated using the calculated number of 
+points each student has earned at each time point in their grade history.
+```{r echo = TRUE, include = TRUE}
 get_cummulative_earned_pts <- function(df) {
   student_col <- get_student_col(df)
   t_df <- get_earned_pts(df)
@@ -247,10 +278,16 @@ get_cummulative_earned_pts <- function(df) {
   names(c_pts) <- names(df)
   c_pts
 }
+```
+We can easily calculate the running grade average using the possible earned
+points and the earned points. I have called this the current grade average.
+The cummulative earned points is calculated using the calculated number of 
+points each student has earned at each time point in their grade history.
+```{r echo = TRUE, include = TRUE}
 get_current_avg <- function(df) {
   student_col <- get_student_col(df)
   possible_points <- get_possible_pts(df)
-  earned_points <- get_cummulative_earned_pts(df) # needs to be cumulative earned points
+  earned_points <- get_cummulative_earned_pts(df)
   current_avg <- earned_points[ , -student_col] / possible_points[ , -student_col]
   current_avg <- data.frame(earned_points[ , student_col], current_avg)
   names(current_avg) <- names(df)
@@ -259,6 +296,9 @@ get_current_avg <- function(df) {
 
 current_avg <- get_current_avg(grade_df)
 ```
+We have all of the grade calculations needed to post grades and current grade 
+averages. Now we can demonstrate some simple to complex functions used to 
+determine whether or not each cell gets a specific format.
 Thus, for the function `is_avg_equal_or_above_75()` 
 
 ```{r echo = TRUE, include = TRUE}
@@ -278,7 +318,12 @@ is_avg_equal_or_above_65_and_below_75 <- function(grade_df) {
   is_score_equal_or_above_65_and_below_75(get_current_avg(grade_df))
 }
 ```
-I have created a small dataframe containing some imaginary students and grades.
+The function `make_df_with_FALSE()` is a convenience function that takes a 
+dataframe as an argument and returns a dataframe of the same number of rows
+and one less column filled with FALSE in each cell. 
+The column left out is for student names.
+
+This function is no longer used.
 ```{r echo = TRUE, include = TRUE}
 make_df_with_FALSE <- function(current_avg) {
   data.frame(matrix(rep(FALSE, nrow(current_avg) *
@@ -286,14 +331,25 @@ make_df_with_FALSE <- function(current_avg) {
                     nrow = nrow(current_avg),
                     ncol = ncol(current_avg) - 1))
 }
-add_student_col <- function(current_avg, score_test_col, student_col) {
+```
+The `add_student_col()` function takes the `current_avg` dataframe, the 
+vector (`score_test_col`) resulting from using the appropriate `score_test()`
+function, and the student names are in and adds `score_test_col` in the 
+position of the student column and vectors of `FALSE` in all of the other 
+columns.
+The `score_test` function is `is_score_below_65()`, 
+`is_score_equal_or_above_65_and_below_75()`, or `is_score_equal_or_above_75()`.
+
+```{r echo = TRUE, include = TRUE}
+add_student_col <- function(current_avg, score_test_col) {
+  student_col <- get_student_col(current_avg)
   false_col <- rep(FALSE, nrow(current_avg))
   student_df <- data.frame(false_col)
   for (col in seq_along(current_avg)) {
     if (col != student_col) {
       student_df <- data.frame(student_df, false_col)
     } else {
-      student_df <-data.frame(student_df, student = score_test_col)
+      student_df <- data.frame(student_df, student = score_test_col)
     }
   }
   student_df <- student_df[ , -1]
@@ -315,68 +371,21 @@ student_avg_test <- function(grade_df, score_test) {
       score_test_col[row] <- FALSE
     }
   }
-  student_df <- add_student_col(current_avg, score_test_col, 
-                                student_col)
-  student_df
+  student_df <- add_student_col(current_avg, score_test_col)
+  as.matrix(student_df)
 }
-# student_avg_below_65 <- function(grade_df) {
-#   if (nrow(grade_df) == 0) {
-#     return(NA)
-#   }
-#   current_avg <- get_current_avg(grade_df)
-#   student_col <- get_student_col(current_avg)
-#   below_65 <- logical(nrow(grade_df))
-#   for (row in 1:nrow(grade_df)) {
-#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-#     if (current_avg[row, max_col] < 65) {
-#       below_65[row] <- TRUE
-#     } else {
-#       below_65[row] <- FALSE
-#     }
-#   }
-#   student_df <- add_student_col(current_avg, below_65, student_col)
-#   student_df
-# }
 
-# student_avg_below_75_and_above_65 <- function(grade_df) {
-#   if (nrow(grade_df) == 0) {
-#     return(NA)
-#   }
-#   current_avg <- get_current_avg(grade_df)
-#   student_col <- get_student_col(current_avg)
-#   between_75_and_65 <- logical(nrow(grade_df))
-#   for (row in 1:nrow(grade_df)) {
-#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-#     if (current_avg[row, max_col] < 75 &
-#         !current_avg[row, max_col] < 65) {
-#       between_75_and_65[row] <- TRUE
-#     } else {
-#       between_75_and_65[row] <- FALSE
-#     }
-#   }
-#   student_df <- add_student_col(current_avg, between_75_and_65, 
-#                                 student_col)
-#   student_df
-# }
-# student_avg_equal_or_above_75 <- function(grade_df) {
-#   if (nrow(grade_df) == 0) {
-#     return(NA)
-#   }
-#   current_avg <- get_current_avg(grade_df)
-#   student_col <- get_student_col(current_avg)
-#   equal_or_above_75 <- logical(nrow(grade_df))
-#   for (row in 1:nrow(grade_df)) {
-#     max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
-#     if (current_avg[row, max_col] >= 75) {
-#       equal_or_above_75[row] <- TRUE
-#     } else {
-#       equal_or_above_75[row] <- FALSE
-#     }
-#   }
-#   student_df <- add_student_col(current_avg, equal_or_above_75, 
-#                                 student_col)
-#   student_df
-# }
+student_avg_below_65 <- function(grade_df) {
+  student_avg_test(grade_df, is_score_below_65)
+}
+
+student_avg_below_75_and_above_65 <- function(grade_df) {
+  student_avg_test(grade_df, is_score_equal_or_above_65_and_below_75)
+}
+
+student_avg_equal_or_above_75 <- function(grade_df) {
+  student_avg_test(grade_df, is_score_equal_or_above_75)
+}
 
 
 ```
@@ -385,23 +394,69 @@ student_avg_test <- function(grade_df, score_test) {
 exam_fmt <- list(
   test = is_exam,
   wrap = TRUE,
-  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
-  foreground_color = as.integer(XLC$COLOR.GREY_25_PERCENT)
+  fill_pattern = as.integer(XLC$FILL.NO_FILL),
+  border = list(side = c("left",  "right"),
+                type = XLC$BORDER.MEDIUM,
+                color = XLC$COLOR.BLACK)
   )
 final_fmt <- list(
   test = is_final,
   wrap = TRUE,
-  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
-  border = as.integer(XLC$BORDER.DOUBLE)
+  fill_pattern = as.integer(XLC$FILL.NO_FILL),
+  border = list(side = c("left",  "right"),
+                type = XLC$BORDER.DOUBLE,
+                color = XLC$COLOR.BLACK)
   )
 below_65_fmt <- list(
   test = is_score_below_65,
   wrap = TRUE,
   fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
-  foreground_color = as.integer(XLC$COLOR.GREY_25_PERCENT)
+  foreground_color = as.integer(XLC$COLOR.ROSE)
   )
+below_75_fmt <- list(
+  test = is_score_equal_or_above_65_and_below_75,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.YELLOW)
+  )
+avg_below_65_fmt <-  list(
+  test = student_avg_below_65,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.ROSE)
+  )
+avg_below_75_fmt <- list(
+  test = student_avg_below_75_and_above_65,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.YELLOW)
+  )
+avg_above_75_fmt <- list(
+  test = student_avg_equal_or_above_75,
+  wrap = TRUE,
+  fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
+  foreground_color = as.integer(XLC$COLOR.GREEN)
+  )
+```
+Finally we put together the individual format lists into another list and 
+call the `add_formatted_worksheet()` function. 
+Note again how the current implementation has subsequent formatting commands 
+overwrite prior formatting commands. In this example, the borders of _exams_
+and the _final_ are removed when the scores are below 75.
 
+We need to add an option to use existing formatting features that do not 
+conflict with new ones. That is, if there is a border in the existing cell
+and the new format does not specify a border, the existing border would remain.
+This is not trivial, because it is a cell by cell formatting command.
+```{r include = TRUE, echo = TRUE}
+grading_formats <- list(exam_fmt, final_fmt, below_65_fmt, below_75_fmt,
+                        avg_below_65_fmt, avg_below_75_fmt, avg_above_75_fmt)
 
+result <- add_formatted_worksheet(grade_df, "student_grades.xlsx",
+                                 sheet = "grades",
+                                 header = TRUE,
+                                 fmt_list = grading_formats,
+                                 create = TRUE)
 
 
 ```

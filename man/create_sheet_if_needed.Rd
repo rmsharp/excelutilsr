@@ -9,7 +9,7 @@ create_sheet_if_needed(wb, m_df, sheet, header, create)
 \arguments{
 \item{wb}{workbook object}
 
-\item{m_df}{dataframe to receive formated worksheet}
+\item{m_df}{dataframe to receive formatted worksheet}
 
 \item{sheet}{character vector with name of worksheet}
 

@@ -1,7 +1,7 @@
 Package: excelutilsr
 Type: Package
 Title: Convenience Functions for Working with Excel in R
-Version: 0.1.2
+Version: 0.1.3
 Date: 2016-03-05
 Author: R. Mark Sharp <msharp@TxBiomed.org>
 Maintainer: R. Mark Sharp <msharp@TxBiomed.org>
