@@ -88,6 +88,85 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
     }
   }
 }
+#' Set the cell styles in the workbook according to the format matrix provided.
+#'
+#' Creates an anonymous cell style within the fmt_cellstyle object.
+#' @return cell style formats based on fmt
+#' @import XLConnect
+#' @export
+set_cellstyle <- function(fmt, wb) {
+  styles <- remove_strings(names(fmt), expunge = c("test"))
+
+  fmt_cellstyle <- createCellStyle(wb)
+  for (style in styles) {
+    switch(style,
+           wrap = {
+             setWrapText(fmt_cellstyle, wrap = fmt$wrap)
+           },
+           fill_pattern = {
+             setFillPattern(fmt_cellstyle, fill = fmt$fill_pattern)
+           },
+           foreground_color = {
+             setFillForegroundColor(fmt_cellstyle,
+                                    color = fmt$foreground_color)
+           },
+           border = {
+             setBorder(fmt_cellstyle, side = fmt$border$side,
+                       type = fmt$border$type,
+                       color = fmt$border$color)
+           },
+           {stop(stri_c("A style value of '", style, "' is not valid."))})
+  }
+  fmt_cellstyle
+}
+#' Takes workbook object (\code{wb}), the format list (\code{fmt_list}),
+#' \code{fmt_row}, a nd \code{fmt_col}).
+#'
+#' @param wb workbook object
+#' @param m_df dataframe to receive formatted worksheet
+#' @param sheet character vector with name of worksheet
+#' @param fmt_list list of format list(s) used to format the worksheet
+#' @param fmt_row a matrix of row numbers where the value of every cell
+#' has the row number of that cell.
+#' @param fmt_col a matrix of column numbers the value of every cell has
+#' the column number of that cell.
+#' @return \code{wb}
+#'
+#' @import XLConnect
+#' @export
+add_cellstyles_to_wb <- function(wb, m_df, sheet, fmt_list, fmt_row, fmt_col) {
+  ## Step through each list item in fmt_list, each of which has the formatting
+  ## instructions corresponding to what is to be done to all cells that
+  ## produce of value of TRUE in the test function associated with the list
+  ## item.
+  for (i in seq_along(fmt_list)) {
+    fmt <- fmt_list[[i]]
+    ## I only want to look at styles, so I am removing items in the list
+    ## "fmt" that are not styles. (Earlier versions had more items than "test").
+    fmt_cellstyle <- set_cellstyle(fmt, wb)
+    ## This is the hardest part to understand.
+    ## fmt$test has to be written so that TRUE is assigned to all of the cells
+    ## where the formatting is wanted. Once that is working, this routine
+    ## makes two vectors with values of the row numbers and column numbers to
+    ## receive the selected formatting.
+    fmt_df <- data.frame(row = as.integer(fmt_row[fmt$test(m_df)]),
+                         col = as.integer(fmt_col[fmt$test(m_df)]))
+    fmt_df <- fmt_df[complete.cases(fmt_df), ]
+    ## Currently, I am setting the column width to match the content width.
+    ## This should be an option.
+    setColumnWidth(wb, sheet, column = 1:ncol(m_df), width = -1)
+
+    ## As long as there is a least one cell that is to be formatted, we
+    ## set the cell styles. Remember if a cell has a value of TRUE for more
+    ## than one of the fmt_list items, that last fmt_list item specifications
+    ## will overwrite prior values.
+    if (nrow(fmt_df) > 0) {
+      setCellStyle(wb, sheet = sheet, row = fmt_df$row,
+                   col = fmt_df$col, cellstyle = fmt_cellstyle)
+    }
+  }
+  wb
+}
 #' Adds formatting to an existing Excel worksheet or to a worksheet added by
 #' the function.
 #'
@@ -198,6 +277,10 @@ add_formatted_worksheet <- function(m_df, excel_file, sheet = sheet,
   } else {
     row_offset <- 0
   }
+  ## If the sheet does not exist and create is TRUE, one is created using
+  ## m_df, otherwise we stop with an error.
+  create_sheet_if_needed(wb, m_df, sheet, header, create)
+
   ## These two commands create a matrix of row numbers and column numbers
   ## respectively. Thus, the value of every cell in fmt_row has the row number
   ## of that cell and the value of every cell in fmt_col has the column number
@@ -208,60 +291,7 @@ add_formatted_worksheet <- function(m_df, excel_file, sheet = sheet,
   fmt_col <- matrix(data = rep(1:ncol(m_df), each = nrow(m_df)),
                     nrow = nrow(m_df),
                     ncol = ncol(m_df))
-  ## Step through each list item in fmt_list, each of which has the formatting
-  ## instructions corresponding to what is to be done to all cells that
-  ## produce of value of TRUE in the test function associated with the list
-  ## item.
-  for (i in seq_along(fmt_list)) {
-    fmt <- fmt_list[[i]]
-    ## If the sheet does not exist and create is TRUE, one is created using
-    ## m_df, otherwise we stop with an error.
-    create_sheet_if_needed(wb, m_df, sheet, header, create)
-    ## I only want to look at styles, so I am removing items in the list
-    ## "fmt" that are not styles. (Earlier versions had more items than "test").
-    styles <- remove_strings(names(fmt), expunge = c("test"))
-
-    fmt_cellstyle <- createCellStyle(wb)
-    for (style in styles) {
-      switch(style,
-             wrap ={
-               setWrapText(fmt_cellstyle, wrap = fmt$wrap)
-             },
-             fill_pattern = {
-               setFillPattern(fmt_cellstyle, fill = fmt$fill_pattern)
-             },
-             foreground_color = {
-               setFillForegroundColor(fmt_cellstyle,
-                                      color = fmt$foreground_color)
-             },
-             border = {
-               setBorder(fmt_cellstyle, side = fmt$border$side,
-                         type = fmt$border$type,
-                         color = fmt$border$color)
-             },
-             {stop(stri_c("A style value of '", style, "' is not valid."))})
-    }
-    ## This is the hardest part to understand.
-    ## fmt$test has to be written so that TRUE is assigned to all of the cells
-    ## where the formatting is wanted. Once that is working, this routine
-    ## makes two vectors with values of the row numbers and column numbers to
-    ## receive the selected formatting.
-    fmt_df <- data.frame(row = as.integer(fmt_row[fmt$test(m_df)]),
-                         col = as.integer(fmt_col[fmt$test(m_df)]))
-    fmt_df <- fmt_df[complete.cases(fmt_df), ]
-    ## Currently, I am setting the column width to match the content width.
-    ## This should be an option.
-    setColumnWidth(wb, sheet, column = 1:ncol(m_df), width = -1)
-
-    ## As long as there is a least one cell that is to be formatted, we
-    ## set the cell styles. Remember if a cell has a value of TRUE for more
-    ## than one of the fmt_list items, that last fmt_list item specifications
-    ## will overwrite prior values.
-    if (nrow(fmt_df) > 0) {
-      setCellStyle(wb, sheet = sheet, row = fmt_df$row,
-                   col = fmt_df$col, cellstyle = fmt_cellstyle)
-    }
-  }
+  wb <- add_cellstyles_to_wb(wb, m_df, sheet, fmt_list, fmt_row, fmt_col)
   saveWorkbook(wb)
   excel_file
 }

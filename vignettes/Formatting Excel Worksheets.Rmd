@@ -75,6 +75,7 @@ is_exam <- function(df) {
     }
   })
 }
+
 ```
 I have created a small dataframe containing some imaginary students and grades
 that can be used to illustrate the various functions.
@@ -174,6 +175,7 @@ get_grading_scheme <- function() {
        final_pts = 30.0,
        total_pts = 100)
 }
+
 ```
 The first thing we need to know to see how a student is doing is to find out
 what the maximum number of points could have been accrued up and including each
@@ -183,8 +185,8 @@ taken thus far, the 40 points in the final grade made up of examination scores,
 and the fact that there are 4 of them. 
 That is calculated with the `get_individual_possible_pts()` function.
 `r get_individual_possible_pts(0, 1, 0))
-```{r echo = TRUE, include = TRUE}
 
+```{r echo = TRUE, include = TRUE}
 #' Looks at the number of exercises, exams, and finals complete to return the
 #' maximum number of points that could have been earned by the student at
 #' any specific point.
@@ -194,6 +196,7 @@ get_individual_possible_pts <- function(exercises = 10, exams = 4, finals = 1) {
     exams / sched$n_exams * sched$exam_pts  + 
     finals / sched$n_finals * sched$final_pts
 }
+
 ```
 We then need to calculate the possible number of points for each time point 
 for each student. 
@@ -206,6 +209,7 @@ get_student_col <- function(df) {
   (1:length(df))[
     stri_detect_regex(tolower(col_names), pattern = "student")]
 }
+
 ```
 Now we can calculate the possible points for each student.
 ```{r echo = TRUE, include = TRUE}
@@ -245,6 +249,7 @@ get_possible_pts <- function(grade_df) {
                         possible_pts)
   possible_pts
 }
+
 ```
 Now that we know what is possible, we calculate the number of points
 each student has earned at each time point in their grade history.
@@ -264,11 +269,12 @@ get_earned_pts <- function(grade_df) {
   names(t_df) <- names(grade_df)
   t_df
 }
+
 ```
-The cummulative earned points is calculated using the calculated number of 
+The cumulative earned points is calculated using the calculated number of 
 points each student has earned at each time point in their grade history.
 ```{r echo = TRUE, include = TRUE}
-get_cummulative_earned_pts <- function(df) {
+get_cumulative_earned_pts <- function(df) {
   student_col <- get_student_col(df)
   t_df <- get_earned_pts(df)
   c_pts <- t(cumsum(data.frame(as.matrix(t(t_df[ , -student_col]), 
@@ -278,16 +284,17 @@ get_cummulative_earned_pts <- function(df) {
   names(c_pts) <- names(df)
   c_pts
 }
+
 ```
 We can easily calculate the running grade average using the possible earned
 points and the earned points. I have called this the current grade average.
-The cummulative earned points is calculated using the calculated number of 
+The cumulative earned points is calculated using the calculated number of 
 points each student has earned at each time point in their grade history.
 ```{r echo = TRUE, include = TRUE}
 get_current_avg <- function(df) {
   student_col <- get_student_col(df)
   possible_points <- get_possible_pts(df)
-  earned_points <- get_cummulative_earned_pts(df)
+  earned_points <- get_cumulative_earned_pts(df)
   current_avg <- earned_points[ , -student_col] / possible_points[ , -student_col]
   current_avg <- data.frame(earned_points[ , student_col], current_avg)
   names(current_avg) <- names(df)
@@ -295,6 +302,7 @@ get_current_avg <- function(df) {
 }
 
 current_avg <- get_current_avg(grade_df)
+
 ```
 We have all of the grade calculations needed to post grades and current grade 
 averages. Now we can demonstrate some simple to complex functions used to 
@@ -305,6 +313,7 @@ Thus, for the function `is_avg_equal_or_above_75()`
 is_avg_equal_or_above_75 <- function(grade_df) {
   is_score_equal_or_above_75(get_current_avg(grade_df))
 }
+
 ```
 Identical strategy is used for both `is_avg_below_65()` and 
 `is_avg_equal_or_above_65_and_below_75()`.
@@ -317,6 +326,7 @@ is_avg_below_65 <- function(grade_df) {
 is_avg_equal_or_above_65_and_below_75 <- function(grade_df) {
   is_score_equal_or_above_65_and_below_75(get_current_avg(grade_df))
 }
+
 ```
 The function `make_df_with_FALSE()` is a convenience function that takes a 
 dataframe as an argument and returns a dataframe of the same number of rows
@@ -331,6 +341,7 @@ make_df_with_FALSE <- function(current_avg) {
                     nrow = nrow(current_avg),
                     ncol = ncol(current_avg) - 1))
 }
+
 ```
 The `add_student_col()` function takes the `current_avg` dataframe, the 
 vector (`score_test_col`) resulting from using the appropriate `score_test()`
@@ -364,7 +375,7 @@ student_avg_test <- function(grade_df, score_test) {
   student_col <- get_student_col(current_avg)
   score_test_col <- logical(nrow(grade_df))
   for (row in 1:nrow(grade_df)) {
-    max_col <- max(col(current_avg[row, ] & !is.na(grade_df[row, ])))
+    max_col <- max(col(as.numeric(current_avg[row, ]) & !is.na(grade_df[row, ])))
     if (score_test(current_avg[row, max_col])) {
       score_test_col[row] <- TRUE
     } else {
@@ -437,6 +448,7 @@ avg_above_75_fmt <- list(
   fill_pattern = as.integer(XLC$FILL.SOLID_FOREGROUND),
   foreground_color = as.integer(XLC$COLOR.GREEN)
   )
+
 ```
 Finally we put together the individual format lists into another list and 
 call the `add_formatted_worksheet()` function. 
