@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+
+<meta charset="utf-8" />
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="pandoc" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<meta name="author" content="R. Mark Sharp, Ph.D." />
+
+
+<title>Formatting Excel Worksheets with R</title>
+
+
+
+<style type="text/css">code{white-space: pre;}</style>
+<style type="text/css">
+div.sourceCode { overflow-x: auto; }
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code > span.dt { color: #902000; } /* DataType */
+code > span.dv { color: #40a070; } /* DecVal */
+code > span.bn { color: #40a070; } /* BaseN */
+code > span.fl { color: #40a070; } /* Float */
+code > span.ch { color: #4070a0; } /* Char */
+code > span.st { color: #4070a0; } /* String */
+code > span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code > span.ot { color: #007020; } /* Other */
+code > span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code > span.fu { color: #06287e; } /* Function */
+code > span.er { color: #ff0000; font-weight: bold; } /* Error */
+code > span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+code > span.cn { color: #880000; } /* Constant */
+code > span.sc { color: #4070a0; } /* SpecialChar */
+code > span.vs { color: #4070a0; } /* VerbatimString */
+code > span.ss { color: #bb6688; } /* SpecialString */
+code > span.im { } /* Import */
+code > span.va { color: #19177c; } /* Variable */
+code > span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code > span.op { color: #666666; } /* Operator */
+code > span.bu { } /* BuiltIn */
+code > span.ex { } /* Extension */
+code > span.pp { color: #bc7a00; } /* Preprocessor */
+code > span.at { color: #7d9029; } /* Attribute */
+code > span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code > span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code > span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+</style>
+
+
+
+<link href="data:text/css;charset=utf-8,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23header%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%20code%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" rel="stylesheet" type="text/css" />
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Formatting Excel Worksheets with R</h1>
+<h4 class="author"><em>R. Mark Sharp, Ph.D.</em></h4>
+<h4 class="date"><em>March 6, 2016</em></h4>
+
+
+
+<p>Though I try to not send data to individuals within an Excel file, sometimes my colleagues use Excel extensively in their own work, are adept at using Excel, and benefit from some of the formatting that is available for highlighting specific cells, columns, and rows within worksheets. For these reasons, I have put together a small function to encapsulate many of the nice formatting features provided by the XLConnect <a href="mailto:xlconnect@mirai-solutions.com">xlconnect@mirai-solutions.com</a> package, which is available on CRAN.</p>
+<p>The function <code>add_formatted_worksheet</code> is used on one worksheet at a time, but can add any number of formats to different cells within that worksheet.</p>
+<p>An instructor asked me about calculating student scores and current averages using R and then displaying those scores in Excel with some formating enhancements to indicate those students who needes attention. I do not remember the specifics of his grading scheme, but this is an attempt to model a fairly realistic grading scenarior that can be easily simplified or enhanced.</p>
+<p>Let’s say you are a teacher who has given your students three different ways to earn points for the class you are teaching. They are listed below:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Type</th>
+<th>Number Possible</th>
+<th>Percent of Final Grade</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Excercise</td>
+<td>10</td>
+<td>30</td>
+</tr>
+<tr class="even">
+<td>Exam</td>
+<td>4</td>
+<td>40</td>
+</tr>
+<tr class="odd">
+<td>Final</td>
+<td>1</td>
+<td>30</td>
+</tr>
+</tbody>
+</table>
+<p>You want to provide yourself and your students with a way of glancing at their grades and knowing where they stand quickly so you devise a plan to indicate how things are going by using Excel’s formatting tools.</p>
+<ol style="list-style-type: decimal">
+<li>Excercises are in cells with an unlined left and right borders.</li>
+<li>Exams are in cells with a single lined left and right borders.</li>
+<li>The final has a double lined left and right borders.</li>
+<li>Individual grades below 65 have a red foreground.</li>
+<li>Individual grades below 75 have a yellow foreground.</li>
+<li>Grades of 75 and above are in a transparent clear foreground.</li>
+<li>The cells with the student names of individuals with cumulative scores that are equal to or above 75 have a green foreground.</li>
+<li>The cells with the student names of individuals with cumulative scores that are greater than or equal to 65 and below 75 have a yellow foreground.</li>
+<li>The cells with the student names of individuals with cumulative scores that are below 65 have a red foreground.</li>
+</ol>
+<p>We can start by identifying the columns of cells with Exam grades. Let’s say the column names are of the form “Exam_1” or “Week_2_Exam” such that we can use the string “exam” to identify the correct columns. The function could be written as follows.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_exam &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  <span class="kw">sapply</span>(<span class="kw">names</span>(df), <span class="cf">function</span>(col_name) {
+    <span class="cf">if</span> (<span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_name), <span class="dt">pattern =</span> <span class="st">&quot;exam&quot;</span>) <span class="op">&amp;</span>
+<span class="st">        </span><span class="op">!</span><span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_name), <span class="dt">pattern =</span> <span class="st">&quot;final&quot;</span>)) {
+      <span class="kw">rep</span>(<span class="ot">TRUE</span>, <span class="kw">nrow</span>(df))
+    } <span class="cf">else</span> {
+      <span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(df))
+    }
+  })
+}</code></pre></div>
+<p>I have created a small dataframe containing some imaginary students and grades that can be used to illustrate the various functions.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grade_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(<span class="dt">Student =</span> <span class="kw">c</span>(<span class="st">&quot;James&quot;</span>, <span class="st">&quot;Jane&quot;</span>, <span class="st">&quot;Jamie&quot;</span>), 
+                      <span class="st">&quot;Exam_1&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="dv">86</span>, <span class="dv">35</span>, <span class="dv">42</span>),
+                      <span class="st">&quot;Exercise_1&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="dv">75</span>, <span class="dv">0</span>, <span class="dv">95</span>),
+                      <span class="st">&quot;Exercise_2&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="dv">100</span>, <span class="dv">65</span>, <span class="dv">80</span>),
+                      <span class="st">&quot;Exam 2&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="dv">92</span>, <span class="dv">49</span>, <span class="dv">59</span>), 
+                      <span class="st">&quot;Final Exam&quot;</span> =<span class="st"> </span><span class="kw">c</span>(<span class="dv">84</span>, <span class="dv">68</span>, <span class="dv">95</span>),<span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>)
+<span class="kw">is_exam</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]   FALSE   TRUE      FALSE      FALSE   TRUE      FALSE
+## [2,]   FALSE   TRUE      FALSE      FALSE   TRUE      FALSE
+## [3,]   FALSE   TRUE      FALSE      FALSE   TRUE      FALSE</code></pre>
+<p>It is now easy to come up with a function that detects the column with the string “final” or “exercise” embedded in the column name.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_final &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  <span class="kw">sapply</span>(<span class="kw">names</span>(df), <span class="cf">function</span>(col_name) {
+    <span class="cf">if</span> (<span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_name), <span class="dt">pattern =</span> <span class="st">&quot;final&quot;</span>)) {
+      <span class="kw">rep</span>(<span class="ot">TRUE</span>, <span class="kw">nrow</span>(df))
+    } <span class="cf">else</span> {
+      <span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(df))
+    }
+  })
+}
+<span class="kw">is_final</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]   FALSE  FALSE      FALSE      FALSE  FALSE       TRUE
+## [2,]   FALSE  FALSE      FALSE      FALSE  FALSE       TRUE
+## [3,]   FALSE  FALSE      FALSE      FALSE  FALSE       TRUE</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_exercise &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  <span class="kw">sapply</span>(<span class="kw">names</span>(df), <span class="cf">function</span>(col_name) {
+    <span class="cf">if</span> (<span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_name), <span class="dt">pattern =</span> <span class="st">&quot;exercise&quot;</span>)) {
+      <span class="kw">rep</span>(<span class="ot">TRUE</span>, <span class="kw">nrow</span>(df))
+    } <span class="cf">else</span> {
+      <span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(df))
+    }
+  })
+}
+<span class="kw">is_exercise</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]   FALSE  FALSE       TRUE       TRUE  FALSE      FALSE
+## [2,]   FALSE  FALSE       TRUE       TRUE  FALSE      FALSE
+## [3,]   FALSE  FALSE       TRUE       TRUE  FALSE      FALSE</code></pre>
+<p>In an equivalent way we can write a function to see if a cell holds a student’s name.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_student &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  <span class="kw">sapply</span>(<span class="kw">names</span>(df), <span class="cf">function</span>(col_name) {
+    <span class="cf">if</span> (<span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_name), <span class="dt">pattern =</span> <span class="st">&quot;student&quot;</span>)) {
+      <span class="kw">rep</span>(<span class="ot">TRUE</span>, <span class="kw">nrow</span>(df))
+    } <span class="cf">else</span> {
+      <span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(df))
+    }
+  })
+}
+<span class="kw">is_student</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]    TRUE  FALSE      FALSE      FALSE  FALSE      FALSE
+## [2,]    TRUE  FALSE      FALSE      FALSE  FALSE      FALSE
+## [3,]    TRUE  FALSE      FALSE      FALSE  FALSE      FALSE</code></pre>
+<p>Testing for individual cell values is a bit different, but using <em>R’s</em> vectors makes it quite simple. Thus, to test for individual grades below 65 we use the following function</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_score_below_<span class="dv">65</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {grade_df <span class="op">&lt;</span><span class="st"> </span><span class="dv">65</span>}
+<span class="kw">is_score_below_65</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]   FALSE  FALSE      FALSE      FALSE  FALSE      FALSE
+## [2,]   FALSE   TRUE       TRUE      FALSE   TRUE      FALSE
+## [3,]   FALSE   TRUE      FALSE      FALSE   TRUE      FALSE</code></pre>
+<p>After seeing how simply that was constructed, the next two functions we need are easily written with the one complexity of how to handle grades below 75 and not less than 65.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_score_equal_or_above_65_and_below_<span class="dv">75</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  grade_df <span class="op">&lt;</span><span class="st"> </span><span class="dv">75</span> <span class="op">&amp;</span>
+<span class="st">  </span><span class="op">!</span>grade_df <span class="op">&lt;</span><span class="st"> </span><span class="dv">65</span>
+}
+<span class="kw">is_score_equal_or_above_65_and_below_75</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]   FALSE  FALSE      FALSE      FALSE  FALSE      FALSE
+## [2,]   FALSE  FALSE      FALSE       TRUE  FALSE       TRUE
+## [3,]   FALSE  FALSE      FALSE      FALSE  FALSE      FALSE</code></pre>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_score_equal_or_above_<span class="dv">75</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {grade_df <span class="op">&gt;=</span><span class="st"> </span><span class="dv">75</span>}
+
+<span class="kw">is_score_equal_or_above_75</span>(grade_df)</code></pre></div>
+<pre><code>##      Student Exam_1 Exercise_1 Exercise_2 Exam.2 Final.Exam
+## [1,]    TRUE   TRUE       TRUE       TRUE   TRUE       TRUE
+## [2,]    TRUE  FALSE      FALSE      FALSE  FALSE      FALSE
+## [3,]    TRUE  FALSE       TRUE       TRUE  FALSE       TRUE</code></pre>
+<p>When calculating current averages, scores have to take into account order and weight of the scores. We can do this by calculating possible total points up to the current cell. I am choosing to put my knowledge of the number and value of each type of grade into a single function (<code>get_grading_scheme()</code>). <em>Handling</em> <em>excussed</em> <em>missing</em> <em>grades</em> <em>is</em> <em>outside</em> <em>the</em> <em>scope</em> <em>of</em> <em>this</em> <em>example</em>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#' Grading scheme</span>
+
+<span class="co">#' This function houses the number of each grade type and the points assigned </span>
+<span class="co">#' to those grade types.</span>
+<span class="co">#'</span>
+get_grading_scheme &lt;-<span class="st"> </span><span class="cf">function</span>() {
+  <span class="kw">list</span>(<span class="dt">n_exams =</span> <span class="dv">4</span>,
+       <span class="dt">exam_pts =</span> <span class="fl">40.0</span>,
+       <span class="dt">n_exercises =</span> <span class="dv">10</span>,
+       <span class="dt">exercise_pts =</span> <span class="fl">30.0</span>,
+       <span class="dt">n_finals =</span> <span class="dv">1</span>,
+       <span class="dt">final_pts =</span> <span class="fl">30.0</span>,
+       <span class="dt">total_pts =</span> <span class="dv">100</span>)
+}</code></pre></div>
+<p>The first thing we need to know to see how a student is doing is to find out what the maximum number of points could have been accrued up and including each time point. Thus, in this example, after the first exam a student could have 100 on the exam, which would be 10 points (1 * 40 / 4) for the 1 examination taken thus far, the 40 points in the final grade made up of examination scores, and the fact that there are 4 of them. That is calculated with the <code>get_individual_possible_pts()</code> function. `r get_individual_possible_pts(0, 1, 0))</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#' Looks at the number of exercises, exams, and finals complete to return the</span>
+<span class="co">#' maximum number of points that could have been earned by the student at</span>
+<span class="co">#' any specific point.</span>
+get_individual_possible_pts &lt;-<span class="st"> </span><span class="cf">function</span>(<span class="dt">exercises =</span> <span class="dv">10</span>, <span class="dt">exams =</span> <span class="dv">4</span>, <span class="dt">finals =</span> <span class="dv">1</span>) {
+  sched &lt;-<span class="st"> </span><span class="kw">get_grading_scheme</span>()
+  exercises <span class="op">/</span><span class="st"> </span>sched<span class="op">$</span>n_exercises <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>exercise_pts  <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>exams <span class="op">/</span><span class="st"> </span>sched<span class="op">$</span>n_exams <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>exam_pts  <span class="op">+</span><span class="st"> </span>
+<span class="st">    </span>finals <span class="op">/</span><span class="st"> </span>sched<span class="op">$</span>n_finals <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>final_pts
+}</code></pre></div>
+<p>We then need to calculate the possible number of points for each time point for each student. The code does not assume the location of the column containing the students names and its location is needed several times so a function that returns its position must be created.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_student_col &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  col_names &lt;-<span class="st"> </span><span class="kw">names</span>(df)
+  (<span class="dv">1</span><span class="op">:</span><span class="kw">length</span>(df))[
+    <span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(col_names), <span class="dt">pattern =</span> <span class="st">&quot;student&quot;</span>)]
+}</code></pre></div>
+<p>Now we can calculate the possible points for each student.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r"><span class="co">#' Looks at the number of exercises, exams, and finals complete to return the</span>
+<span class="co">#' maximum number of points that could have been earned by the student at</span>
+<span class="co">#' any specific point.</span>
+get_possible_pts &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(grade_df)
+  possible_pts &lt;-<span class="st"> </span><span class="kw">data.frame</span>()
+  <span class="cf">for</span> (row <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(grade_df)) { <span class="co"># students are on rows</span>
+    exercises &lt;-<span class="st"> </span><span class="dv">0</span>
+    exams &lt;-<span class="st"> </span><span class="dv">0</span>
+    finals &lt;-<span class="st"> </span><span class="dv">0</span>
+    values &lt;-<span class="st"> </span><span class="kw">numeric</span>(<span class="kw">ncol</span>(grade_df) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)
+    pts &lt;-<span class="st"> </span><span class="dv">0</span>
+    <span class="cf">for</span> (col <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">ncol</span>(grade_df)) {
+      <span class="cf">if</span> (col <span class="op">==</span><span class="st"> </span>student_col) {
+        <span class="cf">next</span>
+      } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">is_exercise</span>(grade_df)[row, col]) {
+        exercises &lt;-<span class="st"> </span>exercises <span class="op">+</span><span class="st"> </span><span class="dv">1</span>
+        values[col] &lt;-<span class="st"> </span><span class="kw">get_individual_possible_pts</span>(exercises, exams, finals)
+      } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">is_exam</span>(grade_df)[row, col]) {
+        exams &lt;-<span class="st"> </span>exams <span class="op">+</span><span class="st"> </span><span class="dv">1</span>
+        values[col] &lt;-<span class="st"> </span><span class="kw">get_individual_possible_pts</span>(exercises, exams, finals)
+      } <span class="cf">else</span> <span class="cf">if</span> (<span class="kw">is_final</span>(grade_df)[row, col]) {
+        finals &lt;-<span class="st"> </span>finals <span class="op">+</span><span class="st"> </span><span class="dv">1</span>
+        values[col] &lt;-<span class="st"> </span><span class="kw">get_individual_possible_pts</span>(exercises, exams, finals)
+      }
+    }
+    possible_pts &lt;-<span class="st"> </span><span class="kw">rbind</span>(possible_pts,  values)
+  }
+  
+  <span class="kw">names</span>(possible_pts) &lt;-<span class="st"> </span><span class="kw">names</span>(grade_df)
+  possible_pts &lt;-<span class="st"> </span>possible_pts[ , <span class="op">-</span>student_col]
+  possible_pts &lt;-<span class="st"> </span><span class="kw">cbind</span>(grade_df[ , <span class="kw">names</span>(grade_df)[
+    <span class="kw">stri_detect_regex</span>(<span class="kw">tolower</span>(<span class="kw">names</span>(grade_df)), <span class="st">&quot;student&quot;</span>)]], 
+                        possible_pts)
+  possible_pts
+}</code></pre></div>
+<p>Now that we know what is possible, we calculate the number of points each student has earned at each time point in their grade history.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_earned_pts &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  sched &lt;-<span class="st"> </span><span class="kw">get_grading_scheme</span>()
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(grade_df)
+  partial_df &lt;-<span class="st"> </span>grade_df[ , <span class="op">-</span>student_col]
+  exam_df &lt;-<span class="st"> </span>partial_df <span class="op">*</span><span class="st"> </span><span class="kw">is_exam</span>(partial_df) <span class="op">*</span><span class="st"> </span>
+<span class="st">    </span>sched<span class="op">$</span>exam_pts <span class="op">/</span><span class="st"> </span>(sched<span class="op">$</span>n_exams <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>total_pts)
+  exercise_df &lt;-<span class="st"> </span>partial_df <span class="op">*</span><span class="st"> </span><span class="kw">is_exercise</span>(partial_df) <span class="op">*</span><span class="st"> </span>
+<span class="st">    </span>sched<span class="op">$</span>exercise_pts <span class="op">/</span><span class="st"> </span>(sched<span class="op">$</span>n_exercises <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>total_pts)
+  final_df &lt;-<span class="st"> </span>partial_df <span class="op">*</span><span class="st"> </span><span class="kw">is_final</span>(partial_df) <span class="op">*</span><span class="st"> </span>
+<span class="st">    </span>sched<span class="op">$</span>final_pts <span class="op">/</span><span class="st"> </span>(sched<span class="op">$</span>n_finals <span class="op">*</span><span class="st"> </span>sched<span class="op">$</span>total_pts)
+  current_grade_df &lt;-<span class="st"> </span>exam_df <span class="op">+</span><span class="st"> </span>exercise_df <span class="op">+</span><span class="st"> </span>final_df
+  t_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(grade_df[ , student_col], current_grade_df)
+  <span class="kw">names</span>(t_df) &lt;-<span class="st"> </span><span class="kw">names</span>(grade_df)
+  t_df
+}</code></pre></div>
+<p>The cumulative earned points is calculated using the calculated number of points each student has earned at each time point in their grade history.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_cumulative_earned_pts &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(df)
+  t_df &lt;-<span class="st"> </span><span class="kw">get_earned_pts</span>(df)
+  c_pts &lt;-<span class="st"> </span><span class="kw">t</span>(<span class="kw">cumsum</span>(<span class="kw">data.frame</span>(<span class="kw">as.matrix</span>(<span class="kw">t</span>(t_df[ , <span class="op">-</span>student_col]), 
+                                         <span class="dt">ncol =</span> <span class="kw">nrow</span>(df)))))
+  c_pts &lt;-<span class="st"> </span><span class="kw">data.frame</span>(df[ , student_col], c_pts, <span class="dt">check.names =</span> <span class="ot">FALSE</span>, 
+                      <span class="dt">stringsAsFactors =</span> <span class="ot">FALSE</span>, <span class="dt">row.names =</span> <span class="ot">NULL</span>)
+  <span class="kw">names</span>(c_pts) &lt;-<span class="st"> </span><span class="kw">names</span>(df)
+  c_pts
+}</code></pre></div>
+<p>We can easily calculate the running grade average using the possible earned points and the earned points. I have called this the current grade average. The cumulative earned points is calculated using the calculated number of points each student has earned at each time point in their grade history.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">get_current_avg &lt;-<span class="st"> </span><span class="cf">function</span>(df) {
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(df)
+  possible_points &lt;-<span class="st"> </span><span class="kw">get_possible_pts</span>(df)
+  earned_points &lt;-<span class="st"> </span><span class="kw">get_cumulative_earned_pts</span>(df)
+  current_avg &lt;-<span class="st"> </span>earned_points[ , <span class="op">-</span>student_col] <span class="op">/</span><span class="st"> </span>possible_points[ , <span class="op">-</span>student_col]
+  current_avg &lt;-<span class="st"> </span><span class="kw">data.frame</span>(earned_points[ , student_col], current_avg)
+  <span class="kw">names</span>(current_avg) &lt;-<span class="st"> </span><span class="kw">names</span>(df)
+  current_avg
+}
+
+current_avg &lt;-<span class="st"> </span><span class="kw">get_current_avg</span>(grade_df)</code></pre></div>
+<p>We have all of the grade calculations needed to post grades and current grade averages. Now we can demonstrate some simple to complex functions used to determine whether or not each cell gets a specific format. Thus, for the function <code>is_avg_equal_or_above_75()</code></p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_avg_equal_or_above_<span class="dv">75</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">is_score_equal_or_above_75</span>(<span class="kw">get_current_avg</span>(grade_df))
+}</code></pre></div>
+<p>Identical strategy is used for both <code>is_avg_below_65()</code> and <code>is_avg_equal_or_above_65_and_below_75()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">is_avg_below_<span class="dv">65</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">is_score_below_65</span>(<span class="kw">get_current_avg</span>(grade_df))
+}
+
+is_avg_equal_or_above_65_and_below_<span class="dv">75</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">is_score_equal_or_above_65_and_below_75</span>(<span class="kw">get_current_avg</span>(grade_df))
+}</code></pre></div>
+<p>The function <code>make_df_with_FALSE()</code> is a convenience function that takes a dataframe as an argument and returns a dataframe of the same number of rows and one less column filled with FALSE in each cell. The column left out is for student names.</p>
+<p>This function is no longer used.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">make_df_with_FALSE &lt;-<span class="st"> </span><span class="cf">function</span>(current_avg) {
+  <span class="kw">data.frame</span>(<span class="kw">matrix</span>(<span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(current_avg) <span class="op">*</span>
+<span class="st">                          </span>(<span class="kw">max</span>(<span class="kw">col</span>(current_avg)) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>)), 
+                    <span class="dt">nrow =</span> <span class="kw">nrow</span>(current_avg),
+                    <span class="dt">ncol =</span> <span class="kw">ncol</span>(current_avg) <span class="op">-</span><span class="st"> </span><span class="dv">1</span>))
+}</code></pre></div>
+<p>The <code>add_student_col()</code> function takes the <code>current_avg</code> dataframe, the vector (<code>score_test_col</code>) resulting from using the appropriate <code>score_test()</code> function, and the student names are in and adds <code>score_test_col</code> in the position of the student column and vectors of <code>FALSE</code> in all of the other columns. The <code>score_test</code> function is <code>is_score_below_65()</code>, <code>is_score_equal_or_above_65_and_below_75()</code>, or <code>is_score_equal_or_above_75()</code>.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">add_student_col &lt;-<span class="st"> </span><span class="cf">function</span>(current_avg, score_test_col) {
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(current_avg)
+  false_col &lt;-<span class="st"> </span><span class="kw">rep</span>(<span class="ot">FALSE</span>, <span class="kw">nrow</span>(current_avg))
+  student_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(false_col)
+  <span class="cf">for</span> (col <span class="cf">in</span> <span class="kw">seq_along</span>(current_avg)) {
+    <span class="cf">if</span> (col <span class="op">!=</span><span class="st"> </span>student_col) {
+      student_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(student_df, false_col)
+    } <span class="cf">else</span> {
+      student_df &lt;-<span class="st"> </span><span class="kw">data.frame</span>(student_df, <span class="dt">student =</span> score_test_col)
+    }
+  }
+  student_df &lt;-<span class="st"> </span>student_df[ , <span class="op">-</span><span class="dv">1</span>]
+  <span class="kw">names</span>(student_df) &lt;-<span class="st"> </span><span class="kw">names</span>(current_avg)
+  student_df
+}
+student_avg_test &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df, score_test) {
+  <span class="cf">if</span> (<span class="kw">nrow</span>(grade_df) <span class="op">==</span><span class="st"> </span><span class="dv">0</span>) {
+    <span class="kw">return</span>(<span class="ot">NA</span>)
+  }
+  current_avg &lt;-<span class="st"> </span><span class="kw">get_current_avg</span>(grade_df)
+  student_col &lt;-<span class="st"> </span><span class="kw">get_student_col</span>(current_avg)
+  score_test_col &lt;-<span class="st"> </span><span class="kw">logical</span>(<span class="kw">nrow</span>(grade_df))
+  <span class="cf">for</span> (row <span class="cf">in</span> <span class="dv">1</span><span class="op">:</span><span class="kw">nrow</span>(grade_df)) {
+    max_col &lt;-<span class="st"> </span><span class="kw">max</span>(<span class="kw">col</span>(<span class="kw">as.numeric</span>(current_avg[row, ]) <span class="op">&amp;</span><span class="st"> </span><span class="op">!</span><span class="kw">is.na</span>(grade_df[row, ])))
+    <span class="cf">if</span> (<span class="kw">score_test</span>(current_avg[row, max_col])) {
+      score_test_col[row] &lt;-<span class="st"> </span><span class="ot">TRUE</span>
+    } <span class="cf">else</span> {
+      score_test_col[row] &lt;-<span class="st"> </span><span class="ot">FALSE</span>
+    }
+  }
+  student_df &lt;-<span class="st"> </span><span class="kw">add_student_col</span>(current_avg, score_test_col)
+  <span class="kw">as.matrix</span>(student_df)
+}
+
+student_avg_below_<span class="dv">65</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">student_avg_test</span>(grade_df, is_score_below_<span class="dv">65</span>)
+}
+
+student_avg_below_75_and_above_<span class="dv">65</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">student_avg_test</span>(grade_df, is_score_equal_or_above_65_and_below_<span class="dv">75</span>)
+}
+
+student_avg_equal_or_above_<span class="dv">75</span> &lt;-<span class="st"> </span><span class="cf">function</span>(grade_df) {
+  <span class="kw">student_avg_test</span>(grade_df, is_score_equal_or_above_<span class="dv">75</span>)
+}</code></pre></div>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">exam_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> is_exam,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.NO_FILL),
+  <span class="dt">border =</span> <span class="kw">list</span>(<span class="dt">side =</span> <span class="kw">c</span>(<span class="st">&quot;left&quot;</span>,  <span class="st">&quot;right&quot;</span>),
+                <span class="dt">type =</span> XLC<span class="op">$</span>BORDER.MEDIUM,
+                <span class="dt">color =</span> XLC<span class="op">$</span>COLOR.BLACK)
+  )
+final_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> is_final,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.NO_FILL),
+  <span class="dt">border =</span> <span class="kw">list</span>(<span class="dt">side =</span> <span class="kw">c</span>(<span class="st">&quot;left&quot;</span>,  <span class="st">&quot;right&quot;</span>),
+                <span class="dt">type =</span> XLC<span class="op">$</span>BORDER.DOUBLE,
+                <span class="dt">color =</span> XLC<span class="op">$</span>COLOR.BLACK)
+  )
+below_65_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> is_score_below_<span class="dv">65</span>,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.SOLID_FOREGROUND),
+  <span class="dt">foreground_color =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>COLOR.ROSE)
+  )
+below_75_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> is_score_equal_or_above_65_and_below_<span class="dv">75</span>,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.SOLID_FOREGROUND),
+  <span class="dt">foreground_color =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>COLOR.YELLOW)
+  )
+avg_below_65_fmt &lt;-<span class="st">  </span><span class="kw">list</span>(
+  <span class="dt">test =</span> student_avg_below_<span class="dv">65</span>,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.SOLID_FOREGROUND),
+  <span class="dt">foreground_color =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>COLOR.ROSE)
+  )
+avg_below_75_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> student_avg_below_75_and_above_<span class="dv">65</span>,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.SOLID_FOREGROUND),
+  <span class="dt">foreground_color =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>COLOR.YELLOW)
+  )
+avg_above_75_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
+  <span class="dt">test =</span> student_avg_equal_or_above_<span class="dv">75</span>,
+  <span class="dt">wrap =</span> <span class="ot">TRUE</span>,
+  <span class="dt">fill_pattern =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>FILL.SOLID_FOREGROUND),
+  <span class="dt">foreground_color =</span> <span class="kw">as.integer</span>(XLC<span class="op">$</span>COLOR.GREEN)
+  )</code></pre></div>
+<p>Finally we put together the individual format lists into another list and call the <code>add_formatted_worksheet()</code> function. Note again how the current implementation has subsequent formatting commands overwrite prior formatting commands. In this example, the borders of <em>exams</em> and the <em>final</em> are removed when the scores are below 75.</p>
+<p>We need to add an option to use existing formatting features that do not conflict with new ones. That is, if there is a border in the existing cell and the new format does not specify a border, the existing border would remain. This is not trivial, because it is a cell by cell formatting command.</p>
+<div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grading_formats &lt;-<span class="st"> </span><span class="kw">list</span>(exam_fmt, final_fmt, below_65_fmt, below_75_fmt,
+                        avg_below_65_fmt, avg_below_75_fmt, avg_above_75_fmt)
+
+result &lt;-<span class="st"> </span><span class="kw">add_formatted_worksheet</span>(grade_df, <span class="st">&quot;student_grades.xlsx&quot;</span>,
+                                 <span class="dt">sheet =</span> <span class="st">&quot;grades&quot;</span>,
+                                 <span class="dt">header =</span> <span class="ot">TRUE</span>,
+                                 <span class="dt">fmt_list =</span> grading_formats,
+                                 <span class="dt">create =</span> <span class="ot">TRUE</span>)</code></pre></div>
+
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
