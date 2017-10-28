@@ -1,0 +1,14 @@
+---
+title: "Installation"
+author: "R. Mark Sharp"
+date: "10/28/2017"
+output: html_document
+---
+## Installation
+
+You can install **excelutilsr** from github with:
+
+```{r gh-installation, eval = FALSE}
+install.packages("devtools")
+devtools::install_github("rmsharp/excelutilsr")
+```

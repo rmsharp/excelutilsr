@@ -1,0 +1,22 @@
+---
+output: github_document
+---
+[![Rdoc](http://www.rdocumentation.org/badges/version/roxygen2)](http://www.rdocumentation.org/packages/roxygen2)
+[![Build Status](https://travis-ci.org/rmsharp/excelutilsr.svg?branch=master)](https://travis-ci.org/rmsharp/excelutilsr)
+[![codecov](https://codecov.io/gh/rmsharp/excelutilsr/branch/master/graph/badge.svg)](https://codecov.io/gh/rmsharp/excelutilsr)
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, echo = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "README-"
+)
+```
+
+# excelutilsr
+```{r child = "vignettes/introduction.Rmd", ref = "introduction"}
+```
+```{r child = "vignettes/installation.Rmd", ref = "installation"}
+

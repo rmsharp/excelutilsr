@@ -1,0 +1,23 @@
+---
+title: "Introduction"
+author: "R. Mark Sharp, Ph.D."
+date: "10/28/2017"
+output: html_document
+---
+
+## Introduction
+The goal of __excelutilsr__ is to provide some basic utility functions for working
+with Excel workbooks and worksheets. It does not particularly contain anything
+novel, though, to my best knowledge it has the most complete function for
+easily adding styles to cells using __XLConnect__. 
+
+I find that I use __create_wkbk__, which creates workbooks and one or more
+worksheets, far more than any other function, because
+many of my clients want output in Excel format.
+
+I will continue to add functions to this when I develop something of general 
+use.
+
+Use the code as you want. Please send me any useful changes and enhancements
+via a pull request on _github.com_.
+
