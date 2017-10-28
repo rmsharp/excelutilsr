@@ -6,7 +6,7 @@ Date: 2017-10-28
 Authors@R: c(
     person("R. Mark", "Sharp", email = "rmsharp@me.com", , 
     role = c("ctb", "cre")))
-Description: Designed to demonstrate using various packages to minipulate 
+Description: Designed to demonstrate creation, minipulation, and formating of
     Excel workbooks and worksheets within R.
 Depends:
     R (>= 3.1.2)
