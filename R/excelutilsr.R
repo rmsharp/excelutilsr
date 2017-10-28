@@ -88,10 +88,14 @@ create_sheet_if_needed <- function(wb, m_df, sheet, header, create) {
     }
   }
 }
-#' Set the cell styles in the workbook according to the format matrix provided.
+#' Set the cell styles to be used in a workbook
 #'
+#' Cell styles are according to the format matrix provided (\code{fmt}.
 #' Creates an anonymous cell style within the fmt_cellstyle object.
+#'
 #' @return cell style formats based on fmt
+#' @param fmt format list(s) used to format the worksheet
+#' @param wb workbook object
 #' @import XLConnect
 #' @export
 set_cellstyle <- function(fmt, wb) {
