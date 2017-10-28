@@ -1,8 +1,13 @@
 ---
 title: "Formatting Excel Worksheets with R"
 author: "R. Mark Sharp, Ph.D."
-date: "March 6, 2016"
-output: html_document
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %VignetteIndexEntry{"this_is_a_test"}
+  %VignetteEngine{knitr::rmarkdown}
+  usepackage[utf8]{inputenc}
+
 ---
 
 ```{r setup, include=FALSE}
