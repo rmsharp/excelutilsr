@@ -37,24 +37,24 @@ create_wkbk <- function(file, df_list, sheetnames, create = TRUE) {
 #' expunge <- c("abc", "D", "E")
 #' remove_strings(strngs, expunge, ignore_case = TRUE)
 #' remove_strings(strngs, expunge, ignore_case = FALSE)
-#' @param .str character vector
+#' @param c_str character vector
 #' @param expunge character vector of strings to be removed
 #' @param ignore_case logical indication whether or not to be case specific.
 #' @import stringi
 #' @export
-remove_strings <- function(.str, expunge, ignore_case = FALSE) {
+remove_strings <- function(c_str, expunge, ignore_case = FALSE) {
   if (ignore_case) {
-    tmp_str <- tolower(.str)
+    tmp_str <- tolower(c_str)
     tmp_expunge <- tolower(expunge)
   } else {
-    tmp_str <- .str
+    tmp_str <- c_str
     tmp_expunge <- expunge
   }
-  keep <- rep(TRUE, length(.str))
+  keep <- rep(TRUE, length(c_str))
   for (exp_str in tmp_expunge) {
     keep <- !stri_detect_regex(tmp_str, exp_str) & keep
   }
-  .str[keep]
+  c_str[keep]
 }
 #' Creates an Excel worksheet if it is needed.
 #'
@@ -132,6 +132,7 @@ set_cellstyle <- function(fmt, wb) {
 #' the column number of that cell.
 #' @return \code{wb}
 #'
+#' @importFrom stats complete.cases
 #' @import XLConnect
 #' @export
 add_cellstyles_to_wb <- function(wb, m_df, sheet, fmt_list, fmt_row, fmt_col) {
@@ -151,7 +152,7 @@ add_cellstyles_to_wb <- function(wb, m_df, sheet, fmt_list, fmt_row, fmt_col) {
     ## receive the selected formatting.
     fmt_df <- data.frame(row = as.integer(fmt_row[fmt$test(m_df)]),
                          col = as.integer(fmt_col[fmt$test(m_df)]))
-    fmt_df <- fmt_df[complete.cases(fmt_df), ]
+    fmt_df <- fmt_df[stats::complete.cases(fmt_df), ]
     ## Currently, I am setting the column width to match the content width.
     ## This should be an option.
     setColumnWidth(wb, sheet, column = 1:ncol(m_df), width = -1)
