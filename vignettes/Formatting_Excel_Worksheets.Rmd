@@ -469,11 +469,12 @@ This is not trivial, because it is a cell by cell formatting command.
 grading_formats <- list(exam_fmt, final_fmt, below_65_fmt, below_75_fmt,
                         avg_below_65_fmt, avg_below_75_fmt, avg_above_75_fmt)
 
-result <- add_formatted_worksheet(grade_df, "student_grades.xlsx",
-                                 sheet = "grades",
-                                 header = TRUE,
-                                 fmt_list = grading_formats,
-                                 create = TRUE)
+result <- add_formatted_worksheet(grade_df,
+                                  "inst/extdata/student_grades.xlsx",
+                                  sheet = "grades",
+                                  header = TRUE,
+                                  fmt_list = grading_formats,
+                                  create = TRUE)
 
 
 ```

@@ -12,6 +12,7 @@
 
 <meta name="author" content="R. Mark Sharp, Ph.D." />
 
+<meta name="date" content="2017-10-28" />
 
 <title>Formatting Excel Worksheets with R</title>
 
@@ -69,7 +70,7 @@ code > span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Inf
 
 <h1 class="title toc-ignore">Formatting Excel Worksheets with R</h1>
 <h4 class="author"><em>R. Mark Sharp, Ph.D.</em></h4>
-<h4 class="date"><em>March 6, 2016</em></h4>
+<h4 class="date"><em>2017-10-28</em></h4>
 
 
 
@@ -430,11 +431,12 @@ avg_above_75_fmt &lt;-<span class="st"> </span><span class="kw">list</span>(
 <div class="sourceCode"><pre class="sourceCode r"><code class="sourceCode r">grading_formats &lt;-<span class="st"> </span><span class="kw">list</span>(exam_fmt, final_fmt, below_65_fmt, below_75_fmt,
                         avg_below_65_fmt, avg_below_75_fmt, avg_above_75_fmt)
 
-result &lt;-<span class="st"> </span><span class="kw">add_formatted_worksheet</span>(grade_df, <span class="st">&quot;student_grades.xlsx&quot;</span>,
-                                 <span class="dt">sheet =</span> <span class="st">&quot;grades&quot;</span>,
-                                 <span class="dt">header =</span> <span class="ot">TRUE</span>,
-                                 <span class="dt">fmt_list =</span> grading_formats,
-                                 <span class="dt">create =</span> <span class="ot">TRUE</span>)</code></pre></div>
+result &lt;-<span class="st"> </span><span class="kw">add_formatted_worksheet</span>(grade_df,
+                                  <span class="st">&quot;inst/extdata/student_grades.xlsx&quot;</span>,
+                                  <span class="dt">sheet =</span> <span class="st">&quot;grades&quot;</span>,
+                                  <span class="dt">header =</span> <span class="ot">TRUE</span>,
+                                  <span class="dt">fmt_list =</span> grading_formats,
+                                  <span class="dt">create =</span> <span class="ot">TRUE</span>)</code></pre></div>
 
 
 
