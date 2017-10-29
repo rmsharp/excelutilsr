@@ -6,12 +6,14 @@ output: html_document
 ---
 
 ## Introduction
-The goal of __excelutilsr__ is to provide some basic utility functions for working
+The goal of __excelutilsr__ is to provide some basic utility functions for
+working
 with Excel workbooks and worksheets. It does not particularly contain anything
-novel, though, to my best knowledge it has the most complete function for
-easily adding styles to cells using __XLConnect__. 
+novel, though, to my best knowledge it has the most complete function,
+__add_formatted_worksheet__, for adding conditional styles to cells using
+__XLConnect__. 
 
-I find that I use __create_wkbk__, which creates workbooks and one or more
+I use __create_wkbk__, which creates workbooks and one or more
 worksheets, far more than any other function, because
 many of my clients want output in Excel format.
 

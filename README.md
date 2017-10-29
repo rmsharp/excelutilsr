@@ -8,9 +8,9 @@ excelutilsr
 Introduction
 ------------
 
-The goal of **excelutilsr** is to provide some basic utility functions for working with Excel workbooks and worksheets. It does not particularly contain anything novel, though, to my best knowledge it has the most complete function for easily adding styles to cells using **XLConnect**.
+The goal of **excelutilsr** is to provide some basic utility functions for working with Excel workbooks and worksheets. It does not particularly contain anything novel, though, to my best knowledge it has the most complete function, **add\_formatted\_worksheet**, for adding conditional styles to cells using **XLConnect**.
 
-I find that I use **create\_wkbk**, which creates workbooks and one or more worksheets, far more than any other function, because many of my clients want output in Excel format.
+I use **create\_wkbk**, which creates workbooks and one or more worksheets, far more than any other function, because many of my clients want output in Excel format.
 
 I will continue to add functions to this when I develop something of general use.
 
