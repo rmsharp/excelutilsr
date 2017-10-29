@@ -2,8 +2,7 @@
 % Please edit documentation in R/excelutilsr.R
 \name{add_cellstyles_to_wb}
 \alias{add_cellstyles_to_wb}
-\title{Takes workbook object (\code{wb}), the format list (\code{fmt_list}),
-\code{fmt_row}, a nd \code{fmt_col}).}
+\title{Add cell styles to a worksheet created on the fly for an existing workbook.}
 \usage{
 add_cellstyles_to_wb(wb, m_df, sheet, fmt_list, fmt_row, fmt_col)
 }
@@ -26,6 +25,6 @@ the column number of that cell.}
 \code{wb}
 }
 \description{
-Takes workbook object (\code{wb}), the format list (\code{fmt_list}),
-\code{fmt_row}, a nd \code{fmt_col}).
+Forms a named formatted worksheet based on argument values and places it in
+the provided workbook..
 }

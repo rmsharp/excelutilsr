@@ -123,8 +123,10 @@ set_cellstyle <- function(fmt, wb) {
   }
   fmt_cellstyle
 }
-#' Takes workbook object (\code{wb}), the format list (\code{fmt_list}),
-#' \code{fmt_row}, a nd \code{fmt_col}).
+#' Add cell styles to a worksheet created on the fly for an existing workbook.
+#'
+#' Forms a named formatted worksheet based on argument values and places it in
+#' the provided workbook..
 #'
 #' @param wb workbook object
 #' @param m_df dataframe to receive formatted worksheet
